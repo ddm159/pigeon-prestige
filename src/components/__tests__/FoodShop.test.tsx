@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import FoodShop from '../FoodShop';
 import { foodService } from '../../services/foodService';
+import { AuthProvider } from '../../contexts/AuthContext';
 
 const mockFoods = [
   { id: '1', name: 'Breeder Mix', price: 100, description: 'Boosts breeding', best_for: 'breeding', effect_type: 'stamina', created_at: '', updated_at: '' },
@@ -12,6 +13,10 @@ const mockInventory = [
   { user_id: 'me', food_id: '1', quantity: 10 },
   { user_id: 'me', food_id: '2', quantity: 5 },
 ];
+
+function renderWithAuthProvider(ui: React.ReactElement) {
+  return render(<AuthProvider>{ui}</AuthProvider>);
+}
 
 describe('FoodShop', () => {
   beforeEach(() => {
@@ -24,12 +29,12 @@ describe('FoodShop', () => {
   });
 
   it('renders loading state', () => {
-    render(<FoodShop />);
+    renderWithAuthProvider(<FoodShop />);
     expect(screen.getByText(/loading foods/i)).toBeInTheDocument();
   });
 
   it('renders foods', async () => {
-    render(<FoodShop />);
+    renderWithAuthProvider(<FoodShop />);
     await waitFor(() => {
       expect(screen.getByText('Breeder Mix')).toBeInTheDocument();
       expect(screen.getByText('Racing Mix')).toBeInTheDocument();

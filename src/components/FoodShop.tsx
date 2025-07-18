@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { foodService } from '../services/foodService';
+import { useAuth } from '../contexts/useAuth';
 
 interface Food {
   id: string;
@@ -10,6 +11,7 @@ interface Food {
 }
 
 const FoodShop: React.FC = () => {
+  const { gameUser } = useAuth();
   const [foods, setFoods] = useState<Food[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +35,11 @@ const FoodShop: React.FC = () => {
       <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-lg p-6 text-white">
         <h1 className="text-3xl font-bold mb-2">Food Shop</h1>
         <p className="text-green-100">Buy food for your pigeons and manage your inventory!</p>
+        {gameUser && (
+          <div className="mt-4 text-lg font-semibold">
+            Balance: <span className="text-yellow-200">${gameUser.balance.toLocaleString()}</span>
+          </div>
+        )}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {foods.map(food => (
