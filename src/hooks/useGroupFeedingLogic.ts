@@ -30,7 +30,7 @@ export function useGroupFeedingLogic(userId: string) {
       .then(([groups, mixes]) => {
         const groupsWithMeta = groups.map(g => ({
           ...g,
-          size: g.pigeons ? g.pigeons.length : 0,
+          pigeon_count: g.pigeons ? g.pigeons.length : 0,
           tags: g.tags || [],
         }));
         setGroups(groupsWithMeta);
@@ -82,8 +82,8 @@ export function useGroupFeedingLogic(userId: string) {
 
   const filteredGroups = groups.filter(g => {
     if (filters.name && !g.name.toLowerCase().includes(filters.name.toLowerCase())) return false;
-    if (filters.minSize && (g.size ?? 0) < filters.minSize) return false;
-    if (filters.maxSize && (g.size ?? 0) > filters.maxSize) return false;
+    if (filters.minSize && (g.pigeon_count ?? 0) < filters.minSize) return false;
+    if (filters.maxSize && (g.pigeon_count ?? 0) > filters.maxSize) return false;
     if (filters.tag && (!g.tags || !g.tags.includes(filters.tag))) return false;
     return true;
   });

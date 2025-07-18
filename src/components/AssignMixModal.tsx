@@ -87,7 +87,7 @@ const AssignMixModal: React.FC<AssignMixModalProps> = ({
             >
               <option value="">Select a group</option>
               {groups.map(g => (
-                <option key={g.id} value={g.id}>{g.name} ({g.size || (g.pigeons ? g.pigeons.length : 0)} pigeons)</option>
+                <option key={g.id} value={g.id}>{g.name} ({g.pigeon_count || (g.pigeons ? g.pigeons.length : 0)} pigeons)</option>
               ))}
             </select>
           )}

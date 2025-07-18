@@ -69,7 +69,7 @@ const GroupFeeding: React.FC = () => {
         <ul>
           {logic.filteredGroups.map(g => (
             <li key={g.id} style={{ marginBottom: 8 }}>
-              {g.name} ({g.size || 0} pigeons)
+              {g.name} ({g.pigeon_count || 0} pigeons)
               <button
                 style={{ marginLeft: 8 }}
                 data-testid={`assign-mix-${g.id}`}
