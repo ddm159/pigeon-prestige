@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { foodService } from '../services/foodService';
-import { pigeonService } from '../services/supabase';
+import { pigeonService } from '../services/pigeonService';
 import { groupService } from '../services/gameServices';
 import type { FoodMix, Pigeon, PigeonGroup } from '../types/pigeon';
 import { useAuth } from '../contexts/useAuth';

@@ -12,7 +12,7 @@ import PigeonSearchAndFilterBar from '../components/PigeonSearchAndFilterBar';
 
 const PigeonOverviewMain: React.FC<{ user: User }> = ({ user }) => {
   const logic = usePigeonOverviewLogic(user);
-
+      
   if (logic.loading) {
     return (
       <div className="flex items-center justify-center h-64">

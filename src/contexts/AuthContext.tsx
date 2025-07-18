@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useState } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
-import { authService, supabase } from '../services/supabase';
+import { authService } from '../services/authService';
+import { supabase } from '../services/supabase';
 import type { User as GameUser } from '../types/pigeon';
 import { useNavigate } from 'react-router-dom';
 

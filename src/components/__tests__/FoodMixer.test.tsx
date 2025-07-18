@@ -7,7 +7,7 @@ import type { FoodMix } from '../../types/pigeon';
 import { act } from 'react';
 import { AllTheProviders } from '../../test/providers';
 import * as useAuthModule from '../../contexts/useAuth';
-import { pigeonService } from '../../services/supabase';
+import { pigeonService } from '../../services/pigeonService';
 import { groupService } from '../../services/gameServices';
 
 const mockFoods = [

@@ -1,5 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { supabase, authService, pigeonService } from '../supabase';
+import { supabase } from '../supabase';
+import { authService } from '../authService';
+import { pigeonService } from '../pigeonService';
 import type { Pigeon } from '../../types/pigeon';
 
 // Mock environment variables for testing

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/useAuth';
-import { pigeonService } from '../services/supabase';
+import { pigeonService } from '../services/pigeonService';
 import type { Pigeon } from '../types/pigeon';
 
 const HomePage: React.FC = () => {
