@@ -28,7 +28,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Racing', href: '/racing', icon: Trophy },
     { name: 'Maintenance', href: '/maintenance', icon: Wrench },
     { name: 'Market', href: '/market', icon: ShoppingCart },
-    // Development route for testing components
+    { name: 'Food Shop', href: '/food-shop', icon: ShoppingCart },
+    { name: 'Food Mixer', href: '/food-mixer', icon: Palette },
+    { name: 'Group Feeding', href: '/group-feeding', icon: Users },
     { name: '🎨 Components', href: '/component-library', icon: Palette },
   ];
 

@@ -1,6 +1,6 @@
 // Mock data for tests
 export const mockUser = {
-  id: 'test-user-id',
+  id: 'b3b8c7e2-8c2e-4e2a-9e2e-8c2e4e2a9e2e',
   email: 'test@example.com',
   username: 'testuser',
   balance: 1000,
@@ -12,12 +12,12 @@ export const mockUser = {
 };
 
 export const mockPigeon = {
-  uuid: 'test-uuid-123',
+  uuid: 'c1a1b2c3-d4e5-6789-0123-456789abcdef',
   name: 'Liam Smith',
   alias: null,
   gender: 'male' as const,
   age: { years: 1, months: 0, days: 0 },
-  ownerId: 'user-1',
+  ownerId: 'b3b8c7e2-8c2e-4e2a-9e2e-8c2e4e2a9e2e',
   stats: {
     speed: 45,
     endurance: 47,
@@ -100,14 +100,14 @@ export const mockPigeons = [
   mockPigeon,
   {
     ...mockPigeon,
-    id: 'test-pigeon-2',
+    id: 'd2b2c3d4-e5f6-7890-1234-56789abcdef0',
     name: 'Lightning',
     gender: 'female' as const,
     age: { years: 1, months: 0, days: 0 },
   },
   {
     ...mockPigeon,
-    id: 'test-pigeon-3',
+    id: 'e3c3d4e5-f6a7-8901-2345-6789abcdef01',
     name: 'Storm',
     gender: 'male' as const,
     age: { years: 0, months: 0, days: 0 },
