@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/useAuth';
-import type { AuthContextType } from '../contexts/AuthContextValue';
+import type { AuthContextType } from '../contexts/AuthContext';
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 
 const LoginPage: React.FC = () => {

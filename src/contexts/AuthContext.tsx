@@ -8,7 +8,7 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   gameUser: GameUser | null;
   loading: boolean;
