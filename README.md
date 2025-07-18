@@ -38,6 +38,10 @@ Pigeon Prestige is a professional multiplayer pigeon racing game built with Vite
 - [ ] Implement real admin authentication/authorization.
 - [ ] Add controls for game parameters as new features are built.
 
+## Test Mock Linter Override
+
+In `src/services/__tests__/foodService.test.ts`, we disable `@typescript-eslint/no-explicit-any` for test mocks only. This is necessary due to the complexity of mocking Supabase's types for the SDK. All production code remains fully type-safe and linter clean. Do not use `any` in production code. See comments in the test file for details.
+
 ---
 
 For more details, see code comments and the `/src/pages/AdminPage.tsx` file.

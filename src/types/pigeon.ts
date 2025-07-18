@@ -251,3 +251,45 @@ export interface PigeonGroupMember {
   group_id: string;
   pigeon_id: string;
 } 
+
+// Food System Types
+export interface Food {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+  best_for?: string;
+  effect_type?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserFoodInventory {
+  user_id: string;
+  food_id: string;
+  quantity: number;
+}
+
+export interface FoodMix {
+  id: string;
+  user_id: string;
+  name: string;
+  mix_json: Record<string, number>; // { food_id: percent, ... }
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GroupFeeding {
+  id: string;
+  group_id: string;
+  food_mix_id: string;
+  applied_at: string;
+}
+
+export interface PigeonFeedHistory {
+  id: string;
+  pigeon_id: string;
+  food_mix_id: string | null;
+  applied_at: string;
+  group_id?: string | null;
+} 

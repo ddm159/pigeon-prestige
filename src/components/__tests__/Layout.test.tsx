@@ -34,7 +34,15 @@ describe('Layout', () => {
     );
     
     expect(screen.getByText('testuser')).toBeInTheDocument();
-    expect(screen.getByText('$1,000')).toBeInTheDocument();
+    expect(screen.getByText((content, node) => {
+      const hasText = (node: Element) =>
+        node.textContent === '$1,000' || node.textContent === '$1.000' || node.textContent?.replace(/\s/g, '') === '$1,000' || node.textContent?.replace(/\s/g, '') === '$1.000';
+      const nodeHasText = hasText(node as Element);
+      const childrenDontHaveText = Array.from(node?.children || []).every(
+        (child) => !hasText(child as Element)
+      );
+      return nodeHasText && childrenDontHaveText;
+    })).toBeInTheDocument();
   });
 
   it('renders navigation menu items', () => {

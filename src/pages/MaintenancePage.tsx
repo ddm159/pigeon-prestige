@@ -1,5 +1,9 @@
 import React from 'react';
 import { Wrench, Heart, Shield, Activity } from 'lucide-react';
+import FoodShop from '../components/FoodShop';
+import FoodMixer from '../components/FoodMixer';
+import GroupFeeding from '../components/GroupFeeding';
+import FeedingHistory from '../components/FeedingHistory';
 
 const MaintenancePage: React.FC = () => {
   return (
@@ -39,6 +43,16 @@ const MaintenancePage: React.FC = () => {
           </div>
         </div>
       </div>
+      {/* TODO: Add Food Mixer, Group Feeding, Feeding History sections */}
+      {/* Food Shop Section */}
+      <FoodShop />
+      {/* Food Mixer Section */}
+      <FoodMixer />
+      {/* Group Feeding Section */}
+      <GroupFeeding />
+      {/* Feeding History Section */}
+      <FeedingHistory />
+      {/* TODO: Add Feeding History section */}
     </div>
   );
 };
