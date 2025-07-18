@@ -18,6 +18,7 @@ export interface Pigeon {
   id: string;
   owner_id: string;
   name: string;
+  alias?: string | null; // Custom name that can override the original name
   gender: 'male' | 'female';
   age_years: number;
   age_months: number;

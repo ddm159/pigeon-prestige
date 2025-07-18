@@ -120,6 +120,7 @@ export function usePigeonOverviewLogic(user: User | null) {
     
     // Utility functions
     handleDeletePigeon,
+    refreshPigeons,
     getPigeonPicture,
   };
 } 

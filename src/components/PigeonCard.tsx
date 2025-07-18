@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Pigeon } from '../types/pigeon';
 import { getPigeonPicture } from '../services/pigeonUtils';
+import { getPigeonDisplayName } from '../utils/aliasUtils';
 import { Heart, Trash2, Eye, Edit } from 'lucide-react';
 import StatBar from '../components/StatBar';
 import FoodShortageIndicator from './FoodShortageIndicator';
@@ -11,9 +12,10 @@ interface PigeonCardProps {
   onSelect: (id: string, checked: boolean) => void;
   onBreed: (pigeon: Pigeon) => void;
   onDelete: (id: string) => void;
+  onEditAlias: (pigeon: Pigeon) => void;
 }
 
-const PigeonCard: React.FC<PigeonCardProps> = ({ pigeon, selected, onSelect, onBreed, onDelete }) => (
+const PigeonCard: React.FC<PigeonCardProps> = ({ pigeon, selected, onSelect, onBreed, onDelete, onEditAlias }) => (
   <div className="card hover:shadow-md transition-shadow duration-200">
     {/* Pigeon Header */}
     <div className="flex items-center justify-between mb-4">
@@ -23,7 +25,10 @@ const PigeonCard: React.FC<PigeonCardProps> = ({ pigeon, selected, onSelect, onB
           <img src={getPigeonPicture(pigeon)} alt="Pigeon" className="w-16 h-16 object-cover" />
         </div>
         <div>
-          <h3 className="font-semibold text-gray-900">{pigeon.name}</h3>
+          <h3 className="font-semibold text-gray-900">{getPigeonDisplayName(pigeon)}</h3>
+          {pigeon.alias && (
+            <p className="text-xs text-gray-500 italic">Original: {pigeon.name}</p>
+          )}
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
               pigeon.gender === 'male' 
@@ -47,7 +52,11 @@ const PigeonCard: React.FC<PigeonCardProps> = ({ pigeon, selected, onSelect, onB
         <button className="p-1 text-gray-400 hover:text-gray-600">
           <Eye className="h-4 w-4" />
         </button>
-        <button className="p-1 text-gray-400 hover:text-gray-600">
+        <button 
+          className="p-1 text-gray-400 hover:text-gray-600"
+          onClick={() => onEditAlias(pigeon)}
+          title="Edit Alias"
+        >
           <Edit className="h-4 w-4" />
         </button>
         <button 

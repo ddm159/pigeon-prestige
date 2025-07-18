@@ -62,6 +62,25 @@ export const pigeonService = {
     if (error) throw error;
   },
 
+  // Update a pigeon's alias
+  async updatePigeonAlias(pigeonId: string, alias: string | null): Promise<Pigeon> {
+    const { data, error } = await supabase
+      .from('pigeons')
+      .update({ 
+        alias,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', pigeonId)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to update pigeon alias: ${error.message}`);
+    }
+
+    return data;
+  },
+
   // Create starting pigeons for new user
   async createStartingPigeons(userId: string): Promise<Pigeon[]> {
     console.log('🕊️ Creating starting pigeons for user:', userId);
@@ -204,4 +223,6 @@ export const pigeonService = {
       picture_number: pictureNumber,
     };
   },
-}; 
+};
+
+ 

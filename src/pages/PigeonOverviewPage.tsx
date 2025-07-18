@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/useAuth';
 import { usePigeonOverviewLogic } from '../hooks/usePigeonOverviewLogic';
 import PigeonCard from '../components/PigeonCard';
@@ -6,12 +6,27 @@ import PigeonListItem from '../components/PigeonListItem';
 import PigeonFilterPanel from '../components/PigeonFilterPanel';
 import BreedingModal from '../components/BreedingModal';
 import SaveGroupModal from '../components/SaveGroupModal';
+import AliasEditModal from '../components/AliasEditModal';
 import { Grid, List } from 'lucide-react';
-import type { User } from '../types/pigeon';
+import type { User, Pigeon } from '../types/pigeon';
 import PigeonSearchAndFilterBar from '../components/PigeonSearchAndFilterBar';
+import { pigeonService } from '../services/pigeonService';
 
 const PigeonOverviewMain: React.FC<{ user: User }> = ({ user }) => {
   const logic = usePigeonOverviewLogic(user);
+  const [aliasModalOpen, setAliasModalOpen] = useState(false);
+  const [selectedPigeonForAlias, setSelectedPigeonForAlias] = useState<Pigeon | null>(null);
+
+  const handleEditAlias = (pigeon: Pigeon) => {
+    setSelectedPigeonForAlias(pigeon);
+    setAliasModalOpen(true);
+  };
+
+  const handleSaveAlias = async (pigeonId: string, alias: string | null) => {
+    await pigeonService.updatePigeonAlias(pigeonId, alias);
+    // Refresh the pigeon list
+    await logic.refreshPigeons();
+  };
       
   if (logic.loading) {
     return (
@@ -94,14 +109,15 @@ const PigeonOverviewMain: React.FC<{ user: User }> = ({ user }) => {
         <div className={logic.viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
           {logic.filteredPigeons.map((pigeon) => (
             logic.viewMode === 'grid' ? (
-              <PigeonCard
-                key={pigeon.id}
-                pigeon={pigeon}
-                selected={logic.selectedPigeonIds.includes(pigeon.id)}
-                onSelect={logic.handleSelectPigeon}
-                onBreed={logic.handleBreedingClick}
-                onDelete={logic.handleDeletePigeon}
-              />
+                              <PigeonCard
+                  key={pigeon.id}
+                  pigeon={pigeon}
+                  selected={logic.selectedPigeonIds.includes(pigeon.id)}
+                  onSelect={logic.handleSelectPigeon}
+                  onBreed={logic.handleBreedingClick}
+                  onDelete={logic.handleDeletePigeon}
+                  onEditAlias={handleEditAlias}
+                />
             ) : (
               <PigeonListItem
                 key={pigeon.id}
@@ -136,6 +152,14 @@ const PigeonOverviewMain: React.FC<{ user: User }> = ({ user }) => {
         onSave={logic.handleSaveGroup}
         saving={logic.savingGroup}
         canSave={!!logic.groupName.trim() && logic.selectedPigeonIds.length > 0 && !logic.savingGroup}
+      />
+      
+      {/* Alias Edit Modal */}
+      <AliasEditModal
+        open={aliasModalOpen}
+        pigeon={selectedPigeonForAlias}
+        onClose={() => setAliasModalOpen(false)}
+        onSave={handleSaveAlias}
       />
     </div>
   );
