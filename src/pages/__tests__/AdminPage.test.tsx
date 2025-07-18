@@ -1,6 +1,6 @@
 import React from 'react';
 import { customRender } from '../../test/renderHelpers';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, act } from '@testing-library/react';
 import AdminPage from '../AdminPage';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAuth } from '../../contexts/useAuth';
@@ -77,15 +77,16 @@ describe('AdminPage', () => {
     });
   });
 
-  it('shows access denied for non-admins', () => {
+  it('shows access denied for non-admins', async () => {
     // Mock non-admin user for this test
     (useAuth as ReturnType<typeof vi.fn>).mockReturnValue({
       user: { id: 'user-1', email: 'user@test.com' },
       gameUser: { id: 'user-1', username: 'user', email: 'user@test.com' },
       signOut: vi.fn(),
     });
-    
-    customRender(<AdminPage />);
+    await act(async () => {
+      customRender(<AdminPage />);
+    });
     expect(screen.getByText(/Access denied/i)).toBeInTheDocument();
   });
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import FeedingCenterPage from '../FeedingCenterPage';
 import { AuthProvider } from '../../contexts/AuthContext';
