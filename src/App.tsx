@@ -12,6 +12,8 @@ import AdminPage from './pages/AdminPage';
 import Layout from './components/Layout';
 import LoadingSpinner from './components/LoadingSpinner';
 import ComponentLibrary from './components/ComponentLibrary';
+import FoodShop from './components/FoodShop';
+import FeedingCenter from './components/FeedingCenter';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -107,6 +109,26 @@ const AppContent = () => {
           <ProtectedRoute>
             <Layout>
               <MarketPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/food-shop"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <FoodShop />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/feeding-center"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <FeedingCenter />
             </Layout>
           </ProtectedRoute>
         }

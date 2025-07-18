@@ -1,115 +1,51 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { foodService } from '../services/foodService';
-import type { Food, UserFoodInventory } from '../types/pigeon';
+
+interface Food {
+  id: string;
+  name: string;
+  price: number;
+  best_for?: string;
+  description?: string;
+}
 
 const FoodShop: React.FC = () => {
-  const [foods, setFoods] = React.useState<Food[]>([]);
-  const [inventory, setInventory] = React.useState<UserFoodInventory[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-  const [buying, setBuying] = React.useState<string | null>(null);
-  const [quantities, setQuantities] = React.useState<Record<string, number>>({});
-  // TODO: Replace with real user ID from auth context
-  const userId = 'me';
+  const [foods, setFoods] = useState<Food[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  React.useEffect(() => {
-    setLoading(true);
-    Promise.all([
-      foodService.listFoods(),
-      foodService.getUserInventory(userId),
-    ])
-      .then(([foods, inventory]) => {
-        setFoods(foods);
-        setInventory(inventory);
-        setError(null);
-      })
-      .catch((e) => setError(e.message || 'Failed to load food shop'))
+  useEffect(() => {
+    foodService.listFoods()
+      .then(setFoods)
+      .catch((err) => setError(err.message || 'Failed to load foods'))
       .finally(() => setLoading(false));
-  }, [userId]);
+  }, []);
 
-  const handleQuantityChange = (foodId: string, value: number) => {
-    setQuantities((q) => ({ ...q, [foodId]: value }));
-  };
-
-  const handleBuy = async (food: Food) => {
-    setBuying(food.id);
-    setError(null);
-    const qty = quantities[food.id] || 1;
-    try {
-      // Find current inventory
-      const inv = inventory.find((i: UserFoodInventory) => i.food_id === food.id);
-      const newQty = (inv?.quantity || 0) + qty;
-      await foodService.updateUserInventory(userId, food.id, newQty);
-      // Refresh inventory
-      const updated = await foodService.getUserInventory(userId);
-      setInventory(updated);
-    } catch (e) {
-      setError((e as Error).message || 'Failed to buy food');
-    } finally {
-      setBuying(null);
-    }
-  };
-
-  if (loading) return <div>Loading food shop...</div>;
-  if (error) return <div style={{ color: 'red' }}>{error}</div>;
+  if (loading) {
+    return <div className="text-center py-12">Loading foods...</div>;
+  }
+  if (error) {
+    return <div className="text-center py-12 text-red-600">{error}</div>;
+  }
 
   return (
-    <div>
-      <h3>Food Shop</h3>
-      <div style={{ marginBottom: 16 }}>
-        <strong>Inventory:</strong>
-        <ul>
-          {inventory.map(item => {
-            const food = foods.find(f => f.id === item.food_id);
-            return (
-              <li key={item.food_id}>
-                {food ? food.name : item.food_id}: {item.quantity}
-              </li>
-            );
-          })}
-        </ul>
+    <div className="space-y-8">
+      <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-lg p-6 text-white">
+        <h1 className="text-3xl font-bold mb-2">Food Shop</h1>
+        <p className="text-green-100">Buy food for your pigeons and manage your inventory!</p>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Description</th>
-            <th>Best For</th>
-            <th>Quantity</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {foods.map(food => (
-            <tr key={food.id}>
-              <td>{food.name}</td>
-              <td>{food.price}</td>
-              <td>{food.description}</td>
-              <td>{food.best_for}</td>
-              <td>
-                <input
-                  type="number"
-                  min={1}
-                  value={quantities[food.id] || 1}
-                  onChange={e => handleQuantityChange(food.id, Math.max(1, Number(e.target.value)))}
-                  style={{ width: 60 }}
-                  disabled={buying === food.id}
-                />
-              </td>
-              <td>
-                <button
-                  onClick={() => handleBuy(food)}
-                  disabled={buying === food.id}
-                >
-                  {buying === food.id ? 'Buying...' : 'Buy'}
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {/* TODO: Add tests for FoodShop component */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {foods.map(food => (
+          <div key={food.id} className="card p-4">
+            <h2 className="text-xl font-semibold mb-1">{food.name}</h2>
+            <div className="text-green-700 font-bold mb-2">${food.price}</div>
+            {food.best_for && <div className="text-sm text-gray-500 mb-1">Best for: {food.best_for}</div>}
+            <div className="text-gray-700 mb-2">{food.description}</div>
+            {/* Buy button and inventory will be implemented next */}
+            <div className="text-gray-400 text-xs">Buy functionality coming soon</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

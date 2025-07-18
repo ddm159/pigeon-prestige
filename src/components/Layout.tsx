@@ -29,8 +29,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Maintenance', href: '/maintenance', icon: Wrench },
     { name: 'Market', href: '/market', icon: ShoppingCart },
     { name: 'Food Shop', href: '/food-shop', icon: ShoppingCart },
-    { name: 'Food Mixer', href: '/food-mixer', icon: Palette },
-    { name: 'Group Feeding', href: '/group-feeding', icon: Users },
+    { name: 'Feeding Center', href: '/feeding-center', icon: Users },
     { name: '🎨 Components', href: '/component-library', icon: Palette },
   ];
 
