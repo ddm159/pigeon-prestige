@@ -34,7 +34,7 @@ describe('Layout', () => {
     );
     
     expect(screen.getByText('testuser')).toBeInTheDocument();
-    expect(screen.getByText((content, node) => {
+    expect(screen.getByText((_, node) => {
       const hasText = (node: Element) =>
         node.textContent === '$1,000' || node.textContent === '$1.000' || node.textContent?.replace(/\s/g, '') === '$1,000' || node.textContent?.replace(/\s/g, '') === '$1.000';
       const nodeHasText = hasText(node as Element);

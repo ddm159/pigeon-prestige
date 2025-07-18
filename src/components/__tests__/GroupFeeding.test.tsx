@@ -1,11 +1,10 @@
 // @vitest-environment jsdom
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import GroupFeeding from '../GroupFeeding';
 import { foodService } from '../../services/foodService';
 import { groupService } from '../../services/gameServices';
-import type { GroupFeeding } from '../../types/pigeon';
+import type { GroupFeeding as GroupFeedingType } from '../../types/pigeon';
 
 const mockGroups = [
   { id: 'g1', name: 'Racers', owner_id: 'me', created_at: '', updated_at: '' },
@@ -25,7 +24,7 @@ describe('GroupFeeding', () => {
       group_id: 'g1',
       food_mix_id: 'mix-1',
       applied_at: new Date().toISOString(),
-    } as GroupFeeding);
+    } as GroupFeedingType);
   });
   afterEach(() => {
     vi.restoreAllMocks();
