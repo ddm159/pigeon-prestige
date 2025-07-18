@@ -19,6 +19,7 @@ const FoodShop: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [inventoryLoading, setInventoryLoading] = useState(true);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   useEffect(() => {
     foodService.listFoods()
@@ -35,6 +36,10 @@ const FoodShop: React.FC = () => {
       .catch((err) => setInventoryError(err.message || 'Failed to load inventory'))
       .finally(() => setInventoryLoading(false));
   }, [gameUser]);
+
+  const handleQuantityChange = (foodId: string, value: number) => {
+    setQuantities((q) => ({ ...q, [foodId]: Math.max(1, value) }));
+  };
 
   if (loading) {
     return <div className="text-center py-12">Loading foods...</div>;
@@ -69,7 +74,19 @@ const FoodShop: React.FC = () => {
               {food.best_for && <div className="text-sm text-gray-500 mb-1">Best for: {food.best_for}</div>}
               <div className="text-gray-700 mb-2">{food.description}</div>
               <div className="text-sm text-blue-700 mb-2">Inventory: {inv ? inv.quantity : 0}</div>
-              {/* Buy button and inventory will be implemented next */}
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  type="number"
+                  min={1}
+                  value={quantities[food.id] || 1}
+                  onChange={e => handleQuantityChange(food.id, Number(e.target.value))}
+                  className="w-16 px-2 py-1 border rounded"
+                  aria-label={`Quantity for ${food.name}`}
+                />
+                <button className="btn-primary" disabled>
+                  Buy
+                </button>
+              </div>
               <div className="text-gray-400 text-xs">Buy functionality coming soon</div>
             </div>
           );
