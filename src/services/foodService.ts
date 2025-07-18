@@ -118,4 +118,46 @@ export const foodService = {
       });
     if (error) throw error;
   },
+
+  /** Purchase food: deduct balance, update inventory, log transaction */
+  async purchaseFood(userId: string, food: Food, quantity: number): Promise<void> {
+    if (quantity < 1) throw new Error('Quantity must be at least 1');
+    // Get user and inventory
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('balance')
+      .eq('id', userId)
+      .single();
+    if (userError) throw userError;
+    if (!user) throw new Error('User not found');
+    const totalCost = food.price * quantity;
+    if (user.balance < totalCost) throw new Error('Not enough balance');
+    // Get current inventory
+    const { data: inv } = await supabase
+      .from('user_food_inventory')
+      .select('quantity')
+      .eq('user_id', userId)
+      .eq('food_id', food.id)
+      .single();
+    const newQty = (inv?.quantity || 0) + quantity;
+    // Deduct balance
+    const { error: balanceError } = await supabase
+      .from('users')
+      .update({ balance: user.balance - totalCost })
+      .eq('id', userId);
+    if (balanceError) throw balanceError;
+    // Update inventory
+    await this.updateUserInventory(userId, food.id, newQty);
+    // Log transaction
+    const { error: txError } = await supabase
+      .from('transactions')
+      .insert({
+        user_id: userId,
+        type: 'food_purchase',
+        amount: -totalCost,
+        description: `Purchased ${quantity}x ${food.name}`,
+        related_id: food.id
+      });
+    if (txError) throw txError;
+  },
 }; 

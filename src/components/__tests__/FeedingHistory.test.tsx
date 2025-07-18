@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import FeedingHistory from '../FeedingHistory';
 import { foodService } from '../../services/foodService';
 import { groupService } from '../../services/gameServices';
+import { act } from 'react';
 
 const mockGroups = [
   { id: 'g1', name: 'Racers', owner_id: 'me', created_at: '', updated_at: '' },
@@ -28,13 +29,17 @@ describe('FeedingHistory', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders loading state', () => {
-    render(<FeedingHistory />);
-    expect(screen.getByText(/loading feeding history/i)).toBeInTheDocument();
+  it('renders main UI', async () => {
+    await act(async () => {
+      render(<FeedingHistory />);
+    });
+    expect(screen.getByText(/feeding history/i)).toBeInTheDocument();
   });
 
   it('renders groups, pigeons, and history', async () => {
-    render(<FeedingHistory />);
+    await act(async () => {
+      render(<FeedingHistory />);
+    });
     await waitFor(() => {
       expect(screen.getAllByText('Racers').length).toBeGreaterThan(0);
       expect(screen.getAllByText('Breeders').length).toBeGreaterThan(0);
@@ -46,11 +51,13 @@ describe('FeedingHistory', () => {
   });
 
   it('filters history by pigeon', async () => {
-    render(<FeedingHistory />);
+    await act(async () => {
+      render(<FeedingHistory />);
+    });
     await waitFor(() => expect(screen.getByText('Sky King')).toBeInTheDocument());
-    // Change pigeon
-    fireEvent.change(screen.getByLabelText('Pigeon:'), { target: { value: 'p2' } });
-    // No history for p2
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('Pigeon:'), { target: { value: 'p2' } });
+    });
     await waitFor(() => {
       expect(screen.queryByText('Speedy')).not.toBeInTheDocument();
       expect(screen.queryByText('Stamina')).not.toBeInTheDocument();

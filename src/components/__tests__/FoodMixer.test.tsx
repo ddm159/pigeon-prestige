@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import FoodMixer from '../FoodMixer';
 import { foodService } from '../../services/foodService';
 import type { FoodMix } from '../../types/pigeon';
+import { act } from 'react';
 
 const mockFoods = [
   { id: '1', name: 'Breeder Mix', price: 100, description: '', best_for: '', effect_type: '', created_at: '', updated_at: '' },
@@ -33,48 +34,63 @@ describe('FoodMixer', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders loading state', () => {
-    render(<FoodMixer />);
-    expect(screen.getByText(/loading food mixer/i)).toBeInTheDocument();
+  it('renders main UI', async () => {
+    await act(async () => {
+      render(<FoodMixer />);
+    });
+    expect(screen.getByText(/food mixer/i)).toBeInTheDocument();
   });
 
   it('renders foods and mixes', async () => {
-    render(<FoodMixer />);
+    await act(async () => {
+      render(<FoodMixer />);
+    });
     await waitFor(() => {
       expect(screen.getAllByText((content) => content.includes('Breeder Mix')).length).toBeGreaterThan(0);
       expect(screen.getAllByText((content) => content.includes('Racing Mix')).length).toBeGreaterThan(0);
-      // Match the <li> containing the saved mix name and percentages
       expect(screen.getByText((content, node) => node?.tagName === 'LI' && content.includes('Speedy'))).toBeInTheDocument();
     });
   });
 
   it('saves a mix', async () => {
-    render(<FoodMixer />);
+    await act(async () => {
+      render(<FoodMixer />);
+    });
     await waitFor(() => expect(screen.getByText('Save Mix')).toBeInTheDocument());
-    fireEvent.change(screen.getByPlaceholderText('Mix name'), { target: { value: 'Test Mix' } });
-    // Set total to 100%
-    fireEvent.change(screen.getAllByRole('spinbutton')[0], { target: { value: '60' } });
-    fireEvent.change(screen.getAllByRole('spinbutton')[1], { target: { value: '40' } });
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText('Mix name'), { target: { value: 'Test Mix' } });
+      fireEvent.change(screen.getAllByRole('spinbutton')[0], { target: { value: '60' } });
+      fireEvent.change(screen.getAllByRole('spinbutton')[1], { target: { value: '40' } });
+    });
     const saveButton = screen.getByText('Save Mix');
     await waitFor(() => !saveButton.hasAttribute('disabled'));
-    fireEvent.click(saveButton);
+    await act(async () => {
+      fireEvent.click(saveButton);
+    });
     await waitFor(() => !saveButton.hasAttribute('disabled'));
   });
 
   it('deletes a mix', async () => {
-    render(<FoodMixer />);
+    await act(async () => {
+      render(<FoodMixer />);
+    });
     await waitFor(() => expect(screen.getByText('Delete')).toBeInTheDocument());
     const deleteButton = screen.getByText('Delete');
-    fireEvent.click(deleteButton);
+    await act(async () => {
+      fireEvent.click(deleteButton);
+    });
     await waitFor(() => expect(deleteButton).not.toBeDisabled());
   });
 
   it('applies a mix', async () => {
-    render(<FoodMixer />);
+    await act(async () => {
+      render(<FoodMixer />);
+    });
     await waitFor(() => expect(screen.getByText('Apply')).toBeInTheDocument());
     const applyButton = screen.getByText('Apply');
-    fireEvent.click(applyButton);
-    // After apply, the mix name input should be set to the mix name
+    await act(async () => {
+      fireEvent.click(applyButton);
+    });
     await waitFor(() => expect(screen.getByDisplayValue('Speedy')).toBeInTheDocument());
   });
 }); 

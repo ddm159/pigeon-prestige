@@ -38,7 +38,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -71,7 +71,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <div className="flex">
         {/* Sidebar Navigation */}
-        <nav className="w-64 bg-white shadow-sm border-r border-gray-200 min-h-screen">
+        <nav className="w-64 bg-white shadow-sm border-r border-gray-200 min-h-screen sticky top-16 z-20 h-[calc(100vh-4rem)]">
           <div className="p-4">
             <nav className="space-y-2">
               {navigation.map((item) => {

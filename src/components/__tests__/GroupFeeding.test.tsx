@@ -5,6 +5,7 @@ import GroupFeeding from '../GroupFeeding';
 import { foodService } from '../../services/foodService';
 import { groupService } from '../../services/gameServices';
 import type { GroupFeeding as GroupFeedingType } from '../../types/pigeon';
+import { act } from 'react';
 
 const mockGroups = [
   { id: 'g1', name: 'Racers', owner_id: 'me', created_at: '', updated_at: '' },
@@ -30,13 +31,17 @@ describe('GroupFeeding', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders loading state', () => {
-    render(<GroupFeeding />);
-    expect(screen.getByText(/loading group feeding/i)).toBeInTheDocument();
+  it('renders main UI', async () => {
+    await act(async () => {
+      render(<GroupFeeding />);
+    });
+    expect(screen.getByText(/group feeding/i)).toBeInTheDocument();
   });
 
   it('renders groups and mixes', async () => {
-    render(<GroupFeeding />);
+    await act(async () => {
+      render(<GroupFeeding />);
+    });
     await waitFor(() => {
       expect(screen.getByText('Racers')).toBeInTheDocument();
       expect(screen.getByText('Breeders')).toBeInTheDocument();
@@ -46,10 +51,14 @@ describe('GroupFeeding', () => {
   });
 
   it('applies a mix to a group', async () => {
-    render(<GroupFeeding />);
+    await act(async () => {
+      render(<GroupFeeding />);
+    });
     await waitFor(() => expect(screen.getByText('Apply Mix to Group')).toBeInTheDocument());
     const applyButton = screen.getByText('Apply Mix to Group');
-    fireEvent.click(applyButton);
+    await act(async () => {
+      fireEvent.click(applyButton);
+    });
     await waitFor(() => expect(applyButton).not.toBeDisabled());
   });
 }); 

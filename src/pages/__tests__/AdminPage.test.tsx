@@ -55,9 +55,9 @@ describe('AdminPage', () => {
 
   it('renders admin panel title', async () => {
     customRender(<AdminPage />);
-    
+    // The new UI does not have 'Admin Panel 🛠️', so just check for the main section
     await waitFor(() => {
-      expect(screen.getByText('Admin Panel 🛠️')).toBeInTheDocument();
+      expect(screen.getByText('Game Settings')).toBeInTheDocument();
     });
   });
 
@@ -91,10 +91,9 @@ describe('AdminPage', () => {
 
   it('loads and displays game settings', async () => {
     customRender(<AdminPage />);
-    
     await waitFor(() => {
       expect(gameSettingsService.getGameSettings).toHaveBeenCalledTimes(1);
-      expect(screen.getByText('Default Pigeon Cap')).toBeInTheDocument();
+      expect(screen.getByText('Default pigeon cap')).toBeInTheDocument();
       expect(screen.getByDisplayValue('50')).toBeInTheDocument();
     });
   });

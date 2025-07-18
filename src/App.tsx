@@ -13,7 +13,7 @@ import Layout from './components/Layout';
 import LoadingSpinner from './components/LoadingSpinner';
 import ComponentLibrary from './components/ComponentLibrary';
 import FoodShop from './components/FoodShop';
-import FeedingCenter from './components/FeedingCenter';
+import FeedingCenterPage from './pages/FeedingCenterPage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -128,7 +128,7 @@ const AppContent = () => {
         element={
           <ProtectedRoute>
             <Layout>
-              <FeedingCenter />
+              <FeedingCenterPage />
             </Layout>
           </ProtectedRoute>
         }

@@ -1,25 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { foodService } from '../services/foodService';
 import { useAuth } from '../contexts/useAuth';
-import type { UserFoodInventory } from '../types/pigeon';
+import LoadingSpinner from './LoadingSpinner';
+import type { Food, UserFoodInventory, User as GameUser } from '../types/pigeon';
 
-interface Food {
-  id: string;
-  name: string;
-  price: number;
-  best_for?: string;
-  description?: string;
-}
-
-const FoodShop: React.FC = () => {
-  const { gameUser } = useAuth();
+const FoodShopMain: React.FC<{ gameUser: GameUser; refreshUser: () => Promise<void> }> = ({ gameUser, refreshUser }) => {
   const [foods, setFoods] = useState<Food[]>([]);
-  const [inventory, setInventory] = useState<UserFoodInventory[]>([]);
+  const [inventory, setInventory] = useState<UserFoodInventory[]>([]); // Assuming UserFoodInventory is not directly imported here
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [inventoryLoading, setInventoryLoading] = useState(true);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [buying, setBuying] = useState<string | null>(null);
+  const [buyError, setBuyError] = useState<string | null>(null);
 
   useEffect(() => {
     foodService.listFoods()
@@ -41,8 +35,29 @@ const FoodShop: React.FC = () => {
     setQuantities((q) => ({ ...q, [foodId]: Math.max(1, value) }));
   };
 
+  const handleBuy = async (food: Food) => {
+    if (!gameUser) return;
+    setBuying(food.id);
+    setBuyError(null);
+    const qty = quantities[food.id] || 1;
+    try {
+      await foodService.purchaseFood(gameUser.id, food, qty);
+      await refreshUser(); // Refresh user profile to update balance
+      const updated = await foodService.getUserInventory(gameUser.id);
+      setInventory(updated);
+    } catch (e) {
+      console.error('Buy error:', e); // Log error for debugging
+      setBuyError((e as Error).message || 'Failed to buy food');
+    } finally {
+      setBuying(null);
+    }
+  };
+
   if (loading) {
-    return <div className="text-center py-12">Loading foods...</div>;
+    return <LoadingSpinner />;
+  }
+  if (!gameUser) {
+    return <div className="text-center py-12 text-red-600">You must be logged in to view this page.</div>;
   }
   if (error) {
     return <div className="text-center py-12 text-red-600">{error}</div>;
@@ -63,37 +78,61 @@ const FoodShop: React.FC = () => {
         ) : inventoryError ? (
           <div className="mt-2 text-sm text-red-200">{inventoryError}</div>
         ) : null}
+        {buyError && (
+          <div className="mt-2 text-sm text-red-200">{buyError}</div>
+        )}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {foods.map(food => {
-          const inv = inventory.find(i => i.food_id === food.id);
-          return (
-            <div key={food.id} className="card p-4">
-              <h2 className="text-xl font-semibold mb-1">{food.name}</h2>
-              <div className="text-green-700 font-bold mb-2">${food.price}</div>
-              {food.best_for && <div className="text-sm text-gray-500 mb-1">Best for: {food.best_for}</div>}
-              <div className="text-gray-700 mb-2">{food.description}</div>
-              <div className="text-sm text-blue-700 mb-2">Inventory: {inv ? inv.quantity : 0}</div>
-              <div className="flex items-center gap-2 mb-2">
-                <input
-                  type="number"
-                  min={1}
-                  value={quantities[food.id] || 1}
-                  onChange={e => handleQuantityChange(food.id, Number(e.target.value))}
-                  className="w-16 px-2 py-1 border rounded"
-                  aria-label={`Quantity for ${food.name}`}
-                />
-                <button className="btn-primary" disabled>
-                  Buy
-                </button>
+        {foods.length === 0 ? (
+          <div className="col-span-full text-center text-gray-500 py-8">
+            No foods available. Please check back later or contact support.
+          </div>
+        ) : (
+          foods.map(food => {
+            const inv = inventory.find(i => i.food_id === food.id);
+            return (
+              <div key={food.id} className="card p-4">
+                <h2 className="text-xl font-semibold mb-1">{food.name}</h2>
+                <div className="text-green-700 font-bold mb-2">${food.price}</div>
+                {food.best_for && <div className="text-sm text-gray-500 mb-1">Best for: {food.best_for}</div>}
+                <div className="text-gray-700 mb-2">{food.description}</div>
+                <div className="text-sm text-blue-700 mb-2">Inventory: {inv ? inv.quantity : 0}</div>
+                <div className="flex items-center gap-2 mb-2">
+                  <input
+                    type="number"
+                    min={1}
+                    value={quantities[food.id] || 1}
+                    onChange={e => handleQuantityChange(food.id, Number(e.target.value))}
+                    className="w-16 px-2 py-1 border rounded"
+                    aria-label={`Quantity for ${food.name}`}
+                    disabled={buying === food.id}
+                  />
+                  <button
+                    className="btn-primary"
+                    onClick={() => handleBuy(food)}
+                    disabled={buying === food.id || inventoryLoading || !gameUser}
+                  >
+                    {buying === food.id ? 'Buying...' : 'Buy'}
+                  </button>
+                </div>
               </div>
-              <div className="text-gray-400 text-xs">Buy functionality coming soon</div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </div>
   );
+};
+
+const FoodShop: React.FC = () => {
+  const { gameUser, loading, refreshUser } = useAuth();
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+  if (!gameUser) {
+    return <div className="text-center py-12 text-red-600">You must be logged in to view this page.</div>;
+  }
+  return <FoodShopMain gameUser={gameUser} refreshUser={refreshUser} />;
 };
 
 export default FoodShop; 
