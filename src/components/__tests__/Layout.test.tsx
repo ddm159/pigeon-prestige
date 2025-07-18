@@ -34,7 +34,7 @@ describe('Layout', () => {
     );
     
     expect(screen.getByText('testuser')).toBeInTheDocument();
-    expect(screen.getByText('Level 1 • $1.000')).toBeInTheDocument();
+    expect(screen.getByText('Level 1 • $ 1,000')).toBeInTheDocument();
   });
 
   it('renders navigation menu items', () => {
