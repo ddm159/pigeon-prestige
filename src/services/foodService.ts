@@ -3,41 +3,55 @@ import type { Food, UserFoodInventory, FoodMix, GroupFeeding, PigeonFeedHistory 
 
 /**
  * Assigns a food mix to a pigeon. Persists the assignment until changed.
+ * Updates the pigeon's current_food_mix_id and records the assignment in history.
  * @param pigeonId - The ID of the pigeon
  * @param mixId - The ID of the food mix
  * @returns Promise<boolean>
  */
 export async function assignMixToPigeon(pigeonId: string, mixId: string): Promise<boolean> {
   if (!pigeonId || !mixId) throw new Error('pigeonId and mixId are required');
-  // Insert or update the latest assignment in pigeon_feed_history
-  const { error } = await supabase
+  // 1. Update the persistent assignment
+  const { error: updateError } = await supabase
+    .from('pigeons')
+    .update({ current_food_mix_id: mixId })
+    .eq('id', pigeonId);
+  if (updateError) throw updateError;
+  // 2. Record the assignment in history
+  const { error: historyError } = await supabase
     .from('pigeon_feed_history')
     .insert({
       pigeon_id: pigeonId,
       food_mix_id: mixId,
       applied_at: new Date().toISOString(),
     });
-  if (error) throw error;
+  if (historyError) throw historyError;
   return true;
 }
 
 /**
  * Assigns a food mix to a group. Persists the assignment until changed.
+ * Updates the group's current_food_mix_id and records the assignment in history.
  * @param groupId - The ID of the group
  * @param mixId - The ID of the food mix
  * @returns Promise<boolean>
  */
 export async function assignMixToGroup(groupId: string, mixId: string): Promise<boolean> {
   if (!groupId || !mixId) throw new Error('groupId and mixId are required');
-  // Insert or update the latest assignment in group_feedings
-  const { error } = await supabase
+  // 1. Update the persistent assignment
+  const { error: updateError } = await supabase
+    .from('pigeon_groups')
+    .update({ current_food_mix_id: mixId })
+    .eq('id', groupId);
+  if (updateError) throw updateError;
+  // 2. Record the assignment in history
+  const { error: historyError } = await supabase
     .from('group_feedings')
     .insert({
       group_id: groupId,
       food_mix_id: mixId,
       applied_at: new Date().toISOString(),
     });
-  if (error) throw error;
+  if (historyError) throw historyError;
   return true;
 }
 

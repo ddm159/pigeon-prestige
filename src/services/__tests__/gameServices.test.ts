@@ -59,11 +59,6 @@ describe('updatePigeonFeedingsForGameDay', () => {
     vi.restoreAllMocks();
   });
 
-  it('should keep the last applied mix if no new mix is given', async () => {
-    await expect(updatePigeonFeedingsForGameDay()).resolves.toBeUndefined();
-    expect(fromMock).toHaveBeenCalledWith('pigeon_feed_history');
-  });
-
   it('should decrement health by 5% on first food shortage', async () => {
     // Simulate not enough food
     fromMock.mockImplementation((table: unknown) => {
@@ -137,7 +132,15 @@ describe('updatePigeonFeedingsForGameDay', () => {
     // This is a logic test; to fully assert, you could spy on the update/insert calls
   });
 
-  it('should deduct the correct amount from inventory after feeding', async () => {
+  it('should deduct the correct amount from inventory after feeding (persistent assignment)', async () => {
+    const mockPigeons = [
+      { id: 'p1', owner_id: 'u1', health: 100, status: 'active', food_shortage_streak: 0, current_food_mix_id: 'mix1' },
+    ];
+    const mockFoodMix = { mix_json: { 'f1': 50, 'f2': 50 } };
+    const mockInventory = [
+      { food_id: 'f1', quantity: 100 },
+      { food_id: 'f2', quantity: 100 },
+    ];
     class UpdateSpyQueryBuilder extends MockQueryBuilder {
       update = (...args: unknown[]) => {
         updateSpy(...args);
@@ -150,23 +153,30 @@ describe('updatePigeonFeedingsForGameDay', () => {
       if (t === 'pigeons') {
         return new MockQueryBuilder({ data: mockPigeons, error: null });
       }
-      if (t === 'pigeon_feed_history') {
-        return new MockQueryBuilder({ data: mockFeedHistory[0], error: null });
-      }
       if (t === 'food_mix') {
         return new MockQueryBuilder({ data: mockFoodMix, error: null });
       }
       if (t === 'user_food_inventory') {
         return new UpdateSpyQueryBuilder({ data: mockInventory, error: null });
       }
+      if (t === 'pigeon_feed_history') {
+        return new MockQueryBuilder({ data: {}, error: null });
+      }
       return new MockQueryBuilder({ data: null, error: null });
     });
     await expect(updatePigeonFeedingsForGameDay()).resolves.toBeUndefined();
     expect(updateSpy).toHaveBeenCalled();
-    // Optionally, check that updateSpy was called with correct deduction
   });
 
-  it('should record each feeding in pigeon_feed_history (success and shortage)', async () => {
+  it('should record each feeding in pigeon_feed_history (persistent assignment)', async () => {
+    const mockPigeons = [
+      { id: 'p1', owner_id: 'u1', health: 100, status: 'active', food_shortage_streak: 0, current_food_mix_id: 'mix1' },
+    ];
+    const mockFoodMix = { mix_json: { 'f1': 50, 'f2': 50 } };
+    const mockInventory = [
+      { food_id: 'f1', quantity: 100 },
+      { food_id: 'f2', quantity: 100 },
+    ];
     class InsertSpyQueryBuilder extends MockQueryBuilder {
       insert = (...args: unknown[]) => {
         insertSpy(...args);
@@ -179,20 +189,19 @@ describe('updatePigeonFeedingsForGameDay', () => {
       if (t === 'pigeons') {
         return new MockQueryBuilder({ data: mockPigeons, error: null });
       }
-      if (t === 'pigeon_feed_history') {
-        return new InsertSpyQueryBuilder({ data: mockFeedHistory[0], error: null });
-      }
       if (t === 'food_mix') {
         return new MockQueryBuilder({ data: mockFoodMix, error: null });
       }
       if (t === 'user_food_inventory') {
         return new MockQueryBuilder({ data: mockInventory, error: null });
       }
+      if (t === 'pigeon_feed_history') {
+        return new InsertSpyQueryBuilder({ data: {}, error: null });
+      }
       return new MockQueryBuilder({ data: null, error: null });
     });
     await expect(updatePigeonFeedingsForGameDay()).resolves.toBeUndefined();
     expect(insertSpy).toHaveBeenCalled();
-    // Optionally, check that insertSpy was called with correct fields
   });
 
   it('should skip feeding if no mix ever assigned', async () => {
@@ -388,5 +397,92 @@ describe('updateGroupFeedingsForGameDay', () => {
     });
     await expect(updateGroupFeedingsForGameDay()).resolves.toBeUndefined();
     // Should not throw
+  });
+});
+
+describe('updatePigeonFeedingsForGameDay (persistent assignment)', () => {
+  const mockPigeons = [
+    { id: 'p1', owner_id: 'u1', health: 100, status: 'active', food_shortage_streak: 0, current_food_mix_id: 'mix1' },
+  ];
+  const mockFoodMix1 = { mix_json: { 'f1': 50, 'f2': 50 } };
+  const mockFoodMix2 = { mix_json: { 'f3': 100 } };
+  const mockInventory = [
+    { food_id: 'f1', quantity: 100 },
+    { food_id: 'f2', quantity: 100 },
+    { food_id: 'f3', quantity: 100 },
+  ];
+
+  let fromMock: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // @ts-expect-error: Mock does not fully implement PostgrestQueryBuilder interface
+    fromMock = vi.spyOn(supabase, 'from').mockImplementation((table: unknown) => {
+      const t = table as string;
+      if (t === 'pigeons') {
+        return new MockQueryBuilder({ data: mockPigeons, error: null });
+      }
+      if (t === 'food_mix') {
+        return new MockQueryBuilder({ data: mockFoodMix1, error: null });
+      }
+      if (t === 'user_food_inventory') {
+        return new MockQueryBuilder({ data: mockInventory, error: null });
+      }
+      if (t === 'pigeon_feed_history') {
+        return new MockQueryBuilder({ data: {}, error: null });
+      }
+      return new MockQueryBuilder({ data: null, error: null });
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('feeds using the persistent current_food_mix_id', async () => {
+    await expect(updatePigeonFeedingsForGameDay()).resolves.toBeUndefined();
+    // Should call food_mix with the id from current_food_mix_id
+    expect(fromMock).toHaveBeenCalledWith('food_mix');
+  });
+
+  it('uses the new mix if assignment is changed', async () => {
+    // Simulate changing the assignment
+    const pigeonsWithNewMix = [
+      { id: 'p1', owner_id: 'u1', health: 100, status: 'active', food_shortage_streak: 0, current_food_mix_id: 'mix2' },
+    ];
+    fromMock.mockImplementation((table: unknown) => {
+      const t = table as string;
+      if (t === 'pigeons') {
+        return new MockQueryBuilder({ data: pigeonsWithNewMix, error: null });
+      }
+      if (t === 'food_mix') {
+        return new MockQueryBuilder({ data: mockFoodMix2, error: null });
+      }
+      if (t === 'user_food_inventory') {
+        return new MockQueryBuilder({ data: mockInventory, error: null });
+      }
+      if (t === 'pigeon_feed_history') {
+        return new MockQueryBuilder({ data: {}, error: null });
+      }
+      return new MockQueryBuilder({ data: null, error: null });
+    });
+    await expect(updatePigeonFeedingsForGameDay()).resolves.toBeUndefined();
+    // Should call food_mix with the new id
+    expect(fromMock).toHaveBeenCalledWith('food_mix');
+  });
+
+  it('skips feeding if no current_food_mix_id is set', async () => {
+    const pigeonsNoMix = [
+      { id: 'p1', owner_id: 'u1', health: 100, status: 'active', food_shortage_streak: 0, current_food_mix_id: null },
+    ];
+    fromMock.mockImplementation((table: unknown) => {
+      const t = table as string;
+      if (t === 'pigeons') {
+        return new MockQueryBuilder({ data: pigeonsNoMix, error: null });
+      }
+      return new MockQueryBuilder({ data: null, error: null });
+    });
+    await expect(updatePigeonFeedingsForGameDay()).resolves.toBeUndefined();
+    // Should not call food_mix if no assignment
   });
 }); 

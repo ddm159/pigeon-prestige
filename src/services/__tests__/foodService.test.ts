@@ -36,6 +36,7 @@ class MockQueryBuilder {
   single() { return Promise.resolve({ data: {}, error: null }); }
   then(cb: any) { return cb({ data: [], error: null }); }
   sort() { return this; }
+  update() { return this; } // <-- Add update method for persistent assignment
 }
 
 beforeEach(() => {
@@ -148,6 +149,19 @@ describe('foodService', () => {
 });
 
 describe('foodService.assignMixToPigeon', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // @ts-expect-error: MockQueryBuilder does not fully implement PostgrestQueryBuilder interface
+    vi.spyOn(supabase, 'from').mockImplementation((table: string) => {
+      if (table === 'pigeons') {
+        return new MockQueryBuilder(); // supports update
+      }
+      if (table === 'pigeon_feed_history') {
+        return new MockQueryBuilder();
+      }
+      return new MockQueryBuilder();
+    });
+  });
   it('assigns a mix to a pigeon and persists it', async () => {
     await expect(foodService.assignMixToPigeon('pigeon-id', 'mix-id')).resolves.toBeTruthy();
   });
@@ -164,6 +178,19 @@ describe('foodService.assignMixToPigeon', () => {
 });
 
 describe('foodService.assignMixToGroup', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // @ts-expect-error: MockQueryBuilder does not fully implement PostgrestQueryBuilder interface
+    vi.spyOn(supabase, 'from').mockImplementation((table: string) => {
+      if (table === 'pigeon_groups') {
+        return new MockQueryBuilder(); // supports update
+      }
+      if (table === 'group_feedings') {
+        return new MockQueryBuilder();
+      }
+      return new MockQueryBuilder();
+    });
+  });
   it('assigns a mix to a group and persists it', async () => {
     await expect(foodService.assignMixToGroup('group-id', 'mix-id')).resolves.toBeTruthy();
   });
