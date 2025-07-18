@@ -28,7 +28,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Racing', href: '/racing', icon: Trophy },
     { name: 'Maintenance', href: '/maintenance', icon: Wrench },
     { name: 'Market', href: '/market', icon: ShoppingCart },
-    { name: 'Food Shop', href: '/food-shop', icon: ShoppingCart },
     { name: 'Feeding Center', href: '/feeding-center', icon: Users },
     { name: '🎨 Components', href: '/component-library', icon: Palette },
   ];

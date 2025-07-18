@@ -1,6 +1,9 @@
 import React from 'react';
 import { foodService } from '../services/foodService';
 import type { Food, FoodMix } from '../types/pigeon';
+import { useAuth } from '../contexts/useAuth';
+import { useAssignMixLogic } from '../hooks/useAssignMixLogic';
+import AssignMixModal from './AssignMixModal';
 
 const FoodMixer: React.FC = () => {
   const [foods, setFoods] = React.useState<Food[]>([]);
@@ -13,6 +16,9 @@ const FoodMixer: React.FC = () => {
   const [deleting, setDeleting] = React.useState<string | null>(null);
   // TODO: Replace with real user ID from auth context
   const userId = 'me';
+  const { user } = useAuth();
+  const assignLogic = useAssignMixLogic();
+  const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     setLoading(true);
@@ -31,9 +37,13 @@ const FoodMixer: React.FC = () => {
       })
       .catch((e: Error) => setError(e.message || 'Failed to load food mixer'))
       .finally(() => setLoading(false));
-  }, [userId]);
+  }, [userId, user]);
 
   const total = Object.values(mix).reduce((a, b) => a + b, 0);
+  // Grit is now optional, not required for saving a mix
+  // const gritFood = foods.find(f => f.name.toLowerCase() === 'grit');
+  // const hasGrit = gritFood ? (mix[gritFood.id] ?? 0) > 0 : false;
+  // const gritWarning = !hasGrit ? 'Warning: All mixes must include Grit for healthy digestion.' : null;
 
   const handleChange = (foodId: string, value: number) => {
     setMix(m => ({ ...m, [foodId]: Math.max(0, Math.min(100, value)) }));
@@ -61,6 +71,7 @@ const FoodMixer: React.FC = () => {
       await foodService.deleteFoodMix(mixId);
       const updated = await foodService.listFoodMixes(userId);
       setMixes(updated);
+      setConfirmDeleteId(null);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to delete mix');
     } finally {
@@ -100,6 +111,7 @@ const FoodMixer: React.FC = () => {
           ))}
         </div>
         <div>Total: {total}%</div>
+        {/* Grit is now optional; no warning needed */}
         <input
           type="text"
           placeholder="Mix name"
@@ -119,13 +131,44 @@ const FoodMixer: React.FC = () => {
             <li key={m.id}>
               {m.name} ({Object.entries(m.mix_json).map(([fid, pct]) => `${foods.find(f => f.id === fid)?.name || fid}: ${pct}%`).join(', ')})
               <button style={{ marginLeft: 8 }} onClick={() => handleApply(m)} disabled={false}>Apply</button>
-              <button style={{ marginLeft: 4 }} onClick={() => handleDelete(m.id)} disabled={deleting === m.id}>
+              <button
+                style={{ marginLeft: 4 }}
+                data-testid={`delete-mix-${m.id}`}
+                onClick={() => setConfirmDeleteId(m.id)}
+                disabled={deleting === m.id}
+              >
                 {deleting === m.id ? 'Deleting...' : 'Delete'}
               </button>
+              <button style={{ marginLeft: 4 }} onClick={() => assignLogic.openAssignModal(m)} disabled={false}>
+                Assign
+              </button>
+              {confirmDeleteId === m.id && (
+                <span style={{ marginLeft: 8 }}>
+                  Confirm?{' '}
+                  <button onClick={() => handleDelete(m.id)} disabled={deleting === m.id}>Yes</button>
+                  <button onClick={() => setConfirmDeleteId(null)} disabled={deleting === m.id}>No</button>
+                </span>
+              )}
             </li>
           ))}
         </ul>
       </div>
+      <AssignMixModal
+        open={assignLogic.assignModalOpen}
+        selectedMix={assignLogic.selectedMix}
+        assignTargetType={assignLogic.assignTargetType}
+        setAssignTargetType={assignLogic.setAssignTargetType}
+        pigeons={assignLogic.pigeons}
+        groups={assignLogic.groups}
+        foods={foods}
+        selectedTargetId={assignLogic.selectedTargetId}
+        setSelectedTargetId={assignLogic.setSelectedTargetId}
+        onCancel={assignLogic.closeAssignModal}
+        onAssign={assignLogic.handleConfirmAssign}
+        assigning={assignLogic.assigning}
+        assignError={assignLogic.assignError}
+        assignSuccess={assignLogic.assignSuccess}
+      />
       {/* TODO: Add live preview (pie/bar), add tests for FoodMixer component */}
     </div>
   );

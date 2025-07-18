@@ -3,6 +3,9 @@ import { foodService } from '../services/foodService';
 import { useAuth } from '../contexts/useAuth';
 import LoadingSpinner from '../components/LoadingSpinner';
 import type { Food, User as GameUser, FoodMix } from '../types/pigeon';
+import SavedMixesPanel from '../components/SavedMixesPanel';
+import { useAssignMixLogic } from '../hooks/useAssignMixLogic';
+import AssignMixModal from '../components/AssignMixModal';
 
 const FeedingCenterMain: React.FC<{ gameUser: GameUser }> = ({ gameUser }) => {
   const [foods, setFoods] = useState<Food[]>([]);
@@ -13,23 +16,41 @@ const FeedingCenterMain: React.FC<{ gameUser: GameUser }> = ({ gameUser }) => {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [savedMixes, setSavedMixes] = useState<FoodMix[]>([]);
-  const [loadingMixes, setLoadingMixes] = useState(false);
-  const [mixesError, setMixesError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const assignLogic = useAssignMixLogic();
 
   useEffect(() => {
+    console.log('FeedingCenterMain: loading foods, loading state:', loading);
     foodService.listFoods()
-      .then(setFoods)
-      .catch((err) => setError(err.message || 'Failed to load foods'))
-      .finally(() => setLoading(false));
-  }, []);
+      .then(data => {
+        setFoods(data);
+        setError(null);
+        setLoading(false);
+        console.log('FeedingCenterMain: foods loaded', data);
+      })
+      .catch((err) => {
+        setError(err.message || 'Failed to load foods');
+        setLoading(false);
+        console.error('FeedingCenterMain: error loading foods', err);
+      });
+  }, [loading]);
 
   useEffect(() => {
+    console.log('FeedingCenterMain: gameUser', gameUser);
     if (!gameUser) return;
-    setLoadingMixes(true);
     foodService.listFoodMixes(gameUser.id)
-      .then(setSavedMixes)
-      .catch((err) => setMixesError(err.message || 'Failed to load saved mixes'))
-      .finally(() => setLoadingMixes(false));
+      .then(data => {
+        setSavedMixes(data);
+        setError(null);
+        setLoading(false);
+        console.log('FeedingCenterMain: mixes loaded', data);
+      })
+      .catch((err) => {
+        setError(err.message || 'Failed to load saved mixes');
+        setLoading(false);
+        console.error('FeedingCenterMain: error loading mixes', err);
+      });
   }, [gameUser]);
 
   const handleAddFood = (foodId: string) => {
@@ -61,13 +82,35 @@ const FeedingCenterMain: React.FC<{ gameUser: GameUser }> = ({ gameUser }) => {
       setMix({});
       setMixName('');
       // Refresh saved mixes
-      setLoadingMixes(true);
       const mixes = await foodService.listFoodMixes(gameUser.id);
       setSavedMixes(mixes);
-      setLoadingMixes(false);
     } catch (e) {
       setSaveError((e as Error).message || 'Failed to save mix');
     }
+  };
+
+  const handleApplyMix = (mix: FoodMix) => {
+    setMix({ ...mix.mix_json });
+    setMixName(mix.name);
+  };
+
+  const handleDeleteMix = async (mixId: string) => {
+    setDeletingId(mixId);
+    setSaveError(null);
+    try {
+      await foodService.deleteFoodMix(mixId);
+      const updated = await foodService.listFoodMixes(gameUser.id);
+      setSavedMixes(updated);
+      setConfirmDeleteId(null);
+    } catch (e) {
+      setSaveError((e as Error).message || 'Failed to delete mix');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleAssignMix = (mix: FoodMix) => {
+    assignLogic.openAssignModal(mix);
   };
 
   if (loading) {
@@ -79,6 +122,32 @@ const FeedingCenterMain: React.FC<{ gameUser: GameUser }> = ({ gameUser }) => {
 
   return (
     <div className="max-w-2xl mx-auto py-12">
+      <SavedMixesPanel
+        mixes={savedMixes}
+        foods={foods}
+        onApply={handleApplyMix}
+        onDelete={handleDeleteMix}
+        onAssign={handleAssignMix}
+        deletingId={deletingId}
+        confirmDeleteId={confirmDeleteId}
+        setConfirmDeleteId={setConfirmDeleteId}
+      />
+      <AssignMixModal
+        open={assignLogic.assignModalOpen}
+        selectedMix={assignLogic.selectedMix}
+        assignTargetType={assignLogic.assignTargetType}
+        setAssignTargetType={assignLogic.setAssignTargetType}
+        pigeons={assignLogic.pigeons}
+        groups={assignLogic.groups}
+        foods={foods}
+        selectedTargetId={assignLogic.selectedTargetId}
+        setSelectedTargetId={assignLogic.setSelectedTargetId}
+        onCancel={assignLogic.closeAssignModal}
+        onAssign={assignLogic.handleConfirmAssign}
+        assigning={assignLogic.assigning}
+        assignError={assignLogic.assignError}
+        assignSuccess={assignLogic.assignSuccess}
+      />
       <h1 className="text-3xl font-bold mb-4 text-center">Feeding Center</h1>
       <p className="text-gray-600 mb-6 text-center">Mix, save, and apply custom food blends to your pigeons and groups.</p>
       {/* Mix creation UI (unchanged) */}
@@ -178,44 +247,19 @@ const FeedingCenterMain: React.FC<{ gameUser: GameUser }> = ({ gameUser }) => {
         {saveError && <div className="text-red-600 mt-2">{saveError}</div>}
         {saveSuccess && <div className="text-green-600 mt-2">{saveSuccess}</div>}
       </div>
-      {/* Saved Mixes Section */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Saved Mixes</h2>
-        {loadingMixes ? (
-          <div className="text-gray-400">Loading saved mixes...</div>
-        ) : mixesError ? (
-          <div className="text-red-600">{mixesError}</div>
-        ) : savedMixes.length === 0 ? (
-          <div className="text-gray-400">No saved mixes yet.</div>
-        ) : (
-          <ul className="space-y-4">
-            {savedMixes.map((mix) => (
-              <li key={mix.id} className="border rounded p-4">
-                <div className="font-semibold mb-1">{mix.name}</div>
-                <ul className="list-disc pl-6 text-sm">
-                  {Object.entries(mix.mix_json).map(([foodId, percent]) => {
-                    const food = foods.find(f => f.id === foodId);
-                    if (!food) return null;
-                    return (
-                      <li key={foodId}>{food.name}: {percent}%</li>
-                    );
-                  })}
-                </ul>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
     </div>
   );
 };
 
 const FeedingCenterPage: React.FC = () => {
-  const { gameUser, loading } = useAuth();
+  const { user, gameUser, loading } = useAuth();
   if (loading) {
     return <LoadingSpinner />;
   }
-  if (!gameUser) {
+  if (user && !gameUser) {
+    return <div className="text-center py-12 text-blue-600">Loading your profile...</div>;
+  }
+  if (!user || !gameUser) {
     return <div className="text-center py-12 text-red-600">You must be logged in to view this page.</div>;
   }
   return <FeedingCenterMain gameUser={gameUser} />;

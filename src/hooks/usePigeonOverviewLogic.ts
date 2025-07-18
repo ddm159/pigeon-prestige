@@ -82,16 +82,20 @@ export function usePigeonOverviewLogic(user: User | null) {
 
   useEffect(() => {
     const loadPigeons = async () => {
+      console.log('usePigeonOverviewLogic: user', user);
       if (user) {
         try {
           const userPigeons = await pigeonService.getUserPigeons(user.id);
           setPigeons(userPigeons);
           setFilteredPigeons(userPigeons);
+          console.log('usePigeonOverviewLogic: pigeons loaded', userPigeons);
         } catch (error) {
           console.error('Error loading pigeons:', error);
         } finally {
           setLoading(false);
         }
+      } else {
+        setLoading(false); // Always set loading to false if user is not present
       }
     };
     loadPigeons();

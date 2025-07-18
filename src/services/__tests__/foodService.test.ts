@@ -2,10 +2,9 @@
   eslint-disable @typescript-eslint/no-explicit-any --
   Supabase test mocks require 'any' for compatibility with the SDK's complex types. This override is limited to this test file only; all production code is fully type-safe. See README for details.
 */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { foodService } from '../foodService';
 import { supabase } from '../supabase';
-import { vi } from 'vitest';
 import type { FoodMix, GroupFeeding } from '../../types/pigeon';
 
 type MockSchema = { Tables: Record<string, MockTable>; Views: Record<string, any>; Functions: Record<string, { Args: any; Returns: any }>; };
@@ -21,6 +20,29 @@ type MockTable = {
   Update: Record<string, unknown>;
   Relationships: MockRelationship[];
 };
+
+// Mock supabase
+vi.mock('../supabase');
+
+// (mockMix is not used)
+
+// Mock supabase.from().insert().eq() chain
+class MockQueryBuilder {
+  insert() { return this; }
+  eq() { return this; }
+  select() { return this; }
+  order() { return this; }
+  delete() { return this; }
+  single() { return Promise.resolve({ data: {}, error: null }); }
+  then(cb: any) { return cb({ data: [], error: null }); }
+  sort() { return this; }
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  // @ts-expect-error: MockQueryBuilder does not fully implement PostgrestQueryBuilder interface
+  vi.spyOn(supabase, 'from').mockImplementation(() => new MockQueryBuilder());
+});
 
 describe('foodService', () => {
   it('should list all foods', async () => {
@@ -122,5 +144,37 @@ describe('foodService', () => {
 
   it('should record a pigeon feeding', async () => {
     await expect(foodService.recordPigeonFeeding('pigeon-id', 'mix-id')).resolves.toBeUndefined();
+  });
+});
+
+describe('foodService.assignMixToPigeon', () => {
+  it('assigns a mix to a pigeon and persists it', async () => {
+    await expect(foodService.assignMixToPigeon('pigeon-id', 'mix-id')).resolves.toBeTruthy();
+  });
+  it('updates the mix if a new one is assigned', async () => {
+    await foodService.assignMixToPigeon('pigeon-id', 'mix-id');
+    await expect(foodService.assignMixToPigeon('pigeon-id', 'mix2')).resolves.toBeTruthy();
+  });
+  it('throws if pigeonId or mixId is missing', async () => {
+    // @ts-expect-error: Intentionally passing undefined to test error handling for missing pigeonId
+    await expect(foodService.assignMixToPigeon(undefined, 'mix-id')).rejects.toThrow();
+    // @ts-expect-error: Intentionally passing undefined to test error handling for missing mixId
+    await expect(foodService.assignMixToPigeon('pigeon-id', undefined)).rejects.toThrow();
+  });
+});
+
+describe('foodService.assignMixToGroup', () => {
+  it('assigns a mix to a group and persists it', async () => {
+    await expect(foodService.assignMixToGroup('group-id', 'mix-id')).resolves.toBeTruthy();
+  });
+  it('updates the mix if a new one is assigned to the group', async () => {
+    await foodService.assignMixToGroup('group-id', 'mix-id');
+    await expect(foodService.assignMixToGroup('group-id', 'mix2')).resolves.toBeTruthy();
+  });
+  it('throws if groupId or mixId is missing', async () => {
+    // @ts-expect-error: Intentionally passing undefined to test error handling for missing groupId
+    await expect(foodService.assignMixToGroup(undefined, 'mix-id')).rejects.toThrow();
+    // @ts-expect-error: Intentionally passing undefined to test error handling for missing mixId
+    await expect(foodService.assignMixToGroup('group-id', undefined)).rejects.toThrow();
   });
 }); 

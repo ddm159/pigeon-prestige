@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { customRender } from '../../test/renderHelpers';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import GroupFeeding from '../GroupFeeding';
 import { foodService } from '../../services/foodService';
 import { groupService } from '../../services/gameServices';
 import type { GroupFeeding as GroupFeedingType } from '../../types/pigeon';
-import { act } from 'react';
 
 const mockGroups = [
   { id: 'g1', name: 'Racers', owner_id: 'me', created_at: '', updated_at: '' },
@@ -26,6 +26,7 @@ describe('GroupFeeding', () => {
       food_mix_id: 'mix-1',
       applied_at: new Date().toISOString(),
     } as GroupFeedingType);
+    vi.spyOn(foodService, 'assignMixToGroup').mockResolvedValue(true);
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -33,14 +34,14 @@ describe('GroupFeeding', () => {
 
   it('renders main UI', async () => {
     await act(async () => {
-      render(<GroupFeeding />);
+      customRender(<GroupFeeding />);
     });
     expect(screen.getByText(/group feeding/i)).toBeInTheDocument();
   });
 
   it('renders groups and mixes', async () => {
     await act(async () => {
-      render(<GroupFeeding />);
+      customRender(<GroupFeeding />);
     });
     await waitFor(() => {
       expect(screen.getByText('Racers')).toBeInTheDocument();
@@ -52,7 +53,7 @@ describe('GroupFeeding', () => {
 
   it('applies a mix to a group', async () => {
     await act(async () => {
-      render(<GroupFeeding />);
+      customRender(<GroupFeeding />);
     });
     await waitFor(() => expect(screen.getByText('Apply Mix to Group')).toBeInTheDocument());
     const applyButton = screen.getByText('Apply Mix to Group');
@@ -60,5 +61,18 @@ describe('GroupFeeding', () => {
       fireEvent.click(applyButton);
     });
     await waitFor(() => expect(applyButton).not.toBeDisabled());
+  });
+
+  it('opens assign modal and assigns mix to group', async () => {
+    await act(async () => {
+      customRender(<GroupFeeding />);
+    });
+    await waitFor(() => expect(screen.getByTestId('assign-mix-g1')).toBeInTheDocument());
+    const assignButton = screen.getByTestId('assign-mix-g1');
+    await act(async () => {
+      fireEvent.click(assignButton);
+    });
+    // Assert that the assign modal opens by checking for its content
+    await waitFor(() => expect(screen.queryByText(/Assign Food Mix/)).toBeInTheDocument());
   });
 }); 

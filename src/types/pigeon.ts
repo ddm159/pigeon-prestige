@@ -245,6 +245,14 @@ export interface PigeonGroup {
   created_at: string;
   updated_at: string;
   pigeons?: Pigeon[]; // Optional, for convenience in frontend
+  /**
+   * Number of pigeons in the group (for filtering/UI)
+   */
+  size?: number;
+  /**
+   * Optional tags for group categorization/filtering
+   */
+  tags?: string[];
 }
 
 export interface PigeonGroupMember {

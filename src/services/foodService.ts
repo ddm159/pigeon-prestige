@@ -2,6 +2,46 @@ import { supabase } from './supabase';
 import type { Food, UserFoodInventory, FoodMix, GroupFeeding, PigeonFeedHistory } from '../types/pigeon';
 
 /**
+ * Assigns a food mix to a pigeon. Persists the assignment until changed.
+ * @param pigeonId - The ID of the pigeon
+ * @param mixId - The ID of the food mix
+ * @returns Promise<boolean>
+ */
+export async function assignMixToPigeon(pigeonId: string, mixId: string): Promise<boolean> {
+  if (!pigeonId || !mixId) throw new Error('pigeonId and mixId are required');
+  // Insert or update the latest assignment in pigeon_feed_history
+  const { error } = await supabase
+    .from('pigeon_feed_history')
+    .insert({
+      pigeon_id: pigeonId,
+      food_mix_id: mixId,
+      applied_at: new Date().toISOString(),
+    });
+  if (error) throw error;
+  return true;
+}
+
+/**
+ * Assigns a food mix to a group. Persists the assignment until changed.
+ * @param groupId - The ID of the group
+ * @param mixId - The ID of the food mix
+ * @returns Promise<boolean>
+ */
+export async function assignMixToGroup(groupId: string, mixId: string): Promise<boolean> {
+  if (!groupId || !mixId) throw new Error('groupId and mixId are required');
+  // Insert or update the latest assignment in group_feedings
+  const { error } = await supabase
+    .from('group_feedings')
+    .insert({
+      group_id: groupId,
+      food_mix_id: mixId,
+      applied_at: new Date().toISOString(),
+    });
+  if (error) throw error;
+  return true;
+}
+
+/**
  * Service for food system: foods, inventory, mixes, group feedings, and feed history.
  */
 export const foodService = {
@@ -160,4 +200,7 @@ export const foodService = {
       });
     if (txError) throw txError;
   },
+
+  assignMixToPigeon,
+  assignMixToGroup,
 }; 
