@@ -54,7 +54,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <span className="font-medium">{gameUser?.username}</span>
               </div>
               <div className="text-sm text-gray-500">
-                Level {gameUser?.level} • ${gameUser?.balance?.toLocaleString()}
+                ${gameUser?.balance?.toLocaleString()}
               </div>
               <button
                 onClick={signOut}
