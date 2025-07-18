@@ -3,6 +3,7 @@ import type { Pigeon } from '../types/pigeon';
 import { getPigeonPicture } from '../services/pigeonUtils';
 import { Heart, Trash2, Eye, Edit } from 'lucide-react';
 import StatBar from '../components/StatBar';
+import FoodShortageIndicator from './FoodShortageIndicator';
 
 interface PigeonCardProps {
   pigeon: Pigeon;
@@ -33,6 +34,12 @@ const PigeonCard: React.FC<PigeonCardProps> = ({ pigeon, selected, onSelect, onB
             </span>
             <span>{pigeon.age_years}y {pigeon.age_months}m {pigeon.age_days}d</span>
           </div>
+          {/* Food Shortage Indicator */}
+          <FoodShortageIndicator 
+            foodShortageStreak={pigeon.food_shortage_streak || 0}
+            currentHealth={pigeon.health}
+            className="mt-1"
+          />
         </div>
       </div>
       <div className="flex space-x-1">

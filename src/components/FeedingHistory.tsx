@@ -75,14 +75,26 @@ const FeedingHistory: React.FC = () => {
             <th>Date/Time</th>
             <th>Food Mix</th>
             <th>Group</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
           {filteredHistory.map(h => (
-            <tr key={h.id}>
+            <tr key={h.id} className={h.food_shortage ? 'bg-red-50' : ''}>
               <td>{new Date(h.applied_at).toLocaleString()}</td>
               <td>{mixes.find(m => m.id === h.food_mix_id)?.name || h.food_mix_id}</td>
               <td>{groups.find(g => g.id === h.group_id)?.name || h.group_id}</td>
+              <td>
+                {h.food_shortage ? (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    🚨 Food Shortage
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    ✅ Fed
+                  </span>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>

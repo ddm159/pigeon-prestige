@@ -217,4 +217,54 @@ export const foodService = {
 
   assignMixToPigeon,
   assignMixToGroup,
+
+  /** Get pigeons experiencing food shortages */
+  async getPigeonsWithFoodShortages(userId: string): Promise<Array<{
+    pigeon_id: string;
+    pigeon_name: string;
+    food_shortage_streak: number;
+    current_health: number;
+    last_penalty_date?: string;
+    assigned_food_mix?: string;
+  }>> {
+    const { data, error } = await supabase
+      .from('pigeons')
+      .select(`
+        id,
+        name,
+        food_shortage_streak,
+        health,
+        current_food_mix_id
+      `)
+      .eq('owner_id', userId)
+      .eq('status', 'active')
+      .gt('food_shortage_streak', 0);
+    
+    if (error) throw error;
+    
+    return (data || []).map(pigeon => ({
+      pigeon_id: pigeon.id,
+      pigeon_name: pigeon.name,
+      food_shortage_streak: pigeon.food_shortage_streak || 0,
+      current_health: pigeon.health,
+      assigned_food_mix: pigeon.current_food_mix_id || undefined
+    }));
+  },
+
+  /** Get recent food shortage events */
+  async getRecentFoodShortageEvents(userId: string): Promise<PigeonFeedHistory[]> {
+    const { data, error } = await supabase
+      .from('pigeon_feed_history')
+      .select(`
+        *,
+        pigeons!inner(owner_id)
+      `)
+      .eq('pigeons.owner_id', userId)
+      .eq('food_shortage', true)
+      .order('applied_at', { ascending: false })
+      .limit(50);
+    
+    if (error) throw error;
+    return data || [];
+  },
 }; 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/useAuth';
 import { pigeonService } from '../services/pigeonService';
 import type { Pigeon } from '../types/pigeon';
+import FoodShortageWarning from '../components/FoodShortageWarning';
 
 const HomePage: React.FC = () => {
   console.log('🏠 HomePage - component rendering');
@@ -12,9 +13,12 @@ const HomePage: React.FC = () => {
   console.log('🏠 HomePage - auth state:', { user: !!user, gameUser: !!gameUser });
 
   return (
-    <div className="p-6">
+    <div className="p-6 space-y-6">
       <h1 className="text-3xl font-bold mb-4">TEST - HomePage Working!</h1>
       <p className="text-gray-600 mb-4">If you can see this, the HomePage is rendering correctly.</p>
+      
+      {/* Food Shortage Warning */}
+      {user && <FoodShortageWarning userId={user.id} />}
       
       <div className="bg-green-100 p-4 rounded-lg border border-green-300">
         <h2 className="text-lg font-semibold mb-2 text-green-800">✅ Success!</h2>

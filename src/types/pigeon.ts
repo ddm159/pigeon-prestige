@@ -94,6 +94,11 @@ export interface Pigeon {
   // Picture number for pigeon images (1-50 for males, 51-100 for females)
   picture_number: number;
   
+  // Food system fields
+  current_food_mix_id?: string | null;
+  food_shortage_streak?: number;
+  
+  // Timestamps
   created_at: string;
   updated_at: string;
 }
@@ -242,13 +247,14 @@ export interface PigeonGroup {
   owner_id: string;
   name: string;
   description?: string;
+  current_food_mix_id?: string | null;
   created_at: string;
   updated_at: string;
   pigeons?: Pigeon[]; // Optional, for convenience in frontend
   /**
    * Number of pigeons in the group (for filtering/UI)
    */
-  size?: number;
+  pigeon_count?: number;
   /**
    * Optional tags for group categorization/filtering
    */
@@ -300,4 +306,5 @@ export interface PigeonFeedHistory {
   food_mix_id: string | null;
   applied_at: string;
   group_id?: string | null;
+  food_shortage?: boolean;
 } 
