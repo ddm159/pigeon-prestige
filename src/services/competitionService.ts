@@ -511,7 +511,7 @@ export const competitionService = {
    * Check if user is eligible for race entry
    */
   async checkRaceEligibility(
-    userId: string,
+    _userId: string,
     pigeonId: string,
     raceId: string
   ): Promise<{ eligible: boolean; reason?: string }> {

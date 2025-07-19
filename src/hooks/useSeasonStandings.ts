@@ -15,11 +15,11 @@ export const useSeasonStandings = () => {
   /**
    * Load season standings
    */
-  const loadSeasonStandings = useCallback(async (seasonId: string, divisionId?: string) => {
+  const loadSeasonStandings = useCallback(async (seasonId: string) => {
     try {
       setLoadingStandings(true);
       setError(null);
-      const data = await competitionOrchestratorService.getSeasonStandings(seasonId, divisionId);
+      const data = await competitionOrchestratorService.getSeasonStandings(seasonId);
       setSeasonStandings(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load season standings');

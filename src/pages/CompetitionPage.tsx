@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useCompetition } from '../hooks/useCompetition';
 import { CompetitionHeader } from '../components/competition/CompetitionHeader';
 import { ErrorDisplay } from '../components/competition/ErrorDisplay';
@@ -44,14 +44,18 @@ export const CompetitionPage: React.FC = () => {
   const [selectedSeason, setSelectedSeason] = useState<string>('');
   const [selectedRaceCategory, setSelectedRaceCategory] = useState<RaceCategory | 'all'>('all');
 
+  // Store function references to avoid dependency issues
+  const functionsRef = useRef({ loadSeasonStandings, loadCompetitionStats });
+  functionsRef.current = { loadSeasonStandings, loadCompetitionStats };
+
   // Auto-load data when selections change
-  React.useEffect(() => {
+  useEffect(() => {
     if (activeSeason?.id) {
       setSelectedSeason(activeSeason.id);
-      loadSeasonStandings(activeSeason.id, selectedDivision !== 'all' ? selectedDivision : undefined);
-      loadCompetitionStats(activeSeason.id);
+      functionsRef.current.loadSeasonStandings(activeSeason.id);
+      functionsRef.current.loadCompetitionStats(activeSeason.id);
     }
-  }, [activeSeason, selectedDivision, loadSeasonStandings, loadCompetitionStats]);
+  }, [activeSeason, selectedDivision]);
 
   // Note: Division stats loading removed for now - can be re-added when needed
 
@@ -63,7 +67,7 @@ export const CompetitionPage: React.FC = () => {
   // Handle season selection
   const handleSeasonChange = (seasonId: string) => {
     setSelectedSeason(seasonId);
-    loadSeasonStandings(seasonId, selectedDivision !== 'all' ? selectedDivision : undefined);
+    loadSeasonStandings(seasonId);
     loadCompetitionStats(seasonId);
   };
 
