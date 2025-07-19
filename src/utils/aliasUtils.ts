@@ -26,7 +26,7 @@ export function containsForbiddenWords(alias: string): boolean {
  * @returns The processed alias with words containing forbidden words replaced
  */
 export function replaceForbiddenWords(alias: string): string {
-  let processedAlias = alias;
+  const processedAlias = alias;
   
   // Split the alias into words
   const words = processedAlias.split(/\s+/);
