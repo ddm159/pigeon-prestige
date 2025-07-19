@@ -55,6 +55,7 @@ describe('useWeather', () => {
       date: '2024-01-15',
       weather_type: 'sunny' as const,
       severity: 75,
+      temperature: 22.5,
       is_night: false,
       generated_at: '2024-01-15T10:00:00Z',
       updated_at: '2024-01-15T10:00:00Z'
@@ -63,6 +64,7 @@ describe('useWeather', () => {
     const mockDisplay = {
       type: 'sunny' as const,
       severity: 75,
+      temperature: 22.5,
       isNight: false,
       emoji: '☀️',
       description: 'Sunny',
@@ -106,6 +108,7 @@ describe('useWeather', () => {
       date: '2024-01-15',
       weather_type: 'sunny' as const,
       severity: 75,
+      temperature: 22.5,
       is_night: false,
       generated_at: '2024-01-15T10:00:00Z',
       updated_at: '2024-01-15T10:00:00Z'
@@ -114,6 +117,7 @@ describe('useWeather', () => {
     const mockDisplay = {
       type: 'sunny' as const,
       severity: 75,
+      temperature: 22.5,
       isNight: false,
       emoji: '☀️',
       description: 'Sunny',
@@ -151,6 +155,7 @@ describe('useWeather', () => {
       date: '2024-01-15',
       weather_type: 'sunny' as const,
       severity: 75,
+      temperature: 22.5,
       is_night: false,
       generated_at: '2024-01-15T10:00:00Z',
       updated_at: '2024-01-15T10:00:00Z'
@@ -159,6 +164,7 @@ describe('useWeather', () => {
     const mockDisplay = {
       type: 'sunny' as const,
       severity: 75,
+      temperature: 22.5,
       isNight: false,
       emoji: '☀️',
       description: 'Sunny',
