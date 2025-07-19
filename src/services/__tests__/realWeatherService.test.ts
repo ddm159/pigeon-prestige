@@ -4,6 +4,25 @@ import { realWeatherService } from '../realWeatherService';
 // Mock fetch
 global.fetch = vi.fn();
 
+// Mock Supabase
+vi.mock('../supabase', () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          single: vi.fn(() => Promise.resolve({ data: null, error: null }))
+        })),
+        gte: vi.fn(() => ({
+          lte: vi.fn(() => ({
+            order: vi.fn(() => Promise.resolve({ data: [], error: null }))
+          }))
+        }))
+      })),
+      upsert: vi.fn(() => Promise.resolve({ error: null }))
+    }))
+  }
+}));
+
 // Mock environment variable
 vi.mock('vite', () => ({
   env: {
