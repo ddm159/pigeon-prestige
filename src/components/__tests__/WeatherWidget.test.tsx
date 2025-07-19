@@ -114,6 +114,8 @@ describe('WeatherWidget', () => {
       loading: false,
       error: errorMessage,
       refreshWeather: mockRefreshWeather,
+      forceRegenerateForecasts: vi.fn(),
+      updateWithRealWeather: vi.fn(),
       getWeatherImpactMultiplier: vi.fn(() => 1.0),
       isNightTime: vi.fn(() => false),
       getFormattedDate: vi.fn((date) => date),
@@ -134,6 +136,7 @@ describe('WeatherWidget', () => {
     const mockWeather = {
       type: 'sunny' as const,
       severity: 75,
+      temperature: 22.5,
       isNight: false,
       emoji: '☀️',
       description: 'Sunny',
@@ -154,6 +157,8 @@ describe('WeatherWidget', () => {
       loading: false,
       error: null,
       refreshWeather: mockRefreshWeather,
+      forceRegenerateForecasts: vi.fn(),
+      updateWithRealWeather: vi.fn(),
       getWeatherImpactMultiplier: vi.fn(() => 1.0),
       isNightTime: vi.fn(() => false),
       getFormattedDate: vi.fn((date) => date),
@@ -173,6 +178,7 @@ describe('WeatherWidget', () => {
     const mockWeather = {
       type: 'sunny' as const,
       severity: 75,
+      temperature: 22.5,
       isNight: false,
       emoji: '☀️',
       description: 'Sunny',
