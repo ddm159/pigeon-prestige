@@ -76,6 +76,7 @@ vi.mock('lucide-react', () => ({
   Edit: () => 'Edit',
   Award: () => 'Award',
   Clock: () => 'Clock',
+  Calendar: () => 'Calendar',
   Mail: () => 'Mail',
   Lock: () => 'Lock',
   EyeOff: () => 'EyeOff',
@@ -86,6 +87,12 @@ vi.mock('lucide-react', () => ({
   Activity: () => 'Activity',
   Palette: () => 'Palette',
   X: () => 'X',
+  Settings: () => 'Settings',
+  Save: () => 'Save',
+  AlertTriangle: () => 'AlertTriangle',
+  Database: () => 'Database',
+  Play: () => 'Play',
+  Pause: () => 'Pause',
 }));
 
 // Global test utilities

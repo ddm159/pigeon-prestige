@@ -15,6 +15,10 @@ vi.mock('lucide-react', () => ({
   RefreshCw: vi.fn(() => React.createElement('div', { 'data-testid': 'refresh-cw-icon' })),
   Shield: vi.fn(() => React.createElement('div', { 'data-testid': 'shield-icon' })),
   Database: vi.fn(() => React.createElement('div', { 'data-testid': 'database-icon' })),
+  Clock: vi.fn(() => React.createElement('div', { 'data-testid': 'clock-icon' })),
+  Calendar: vi.fn(() => React.createElement('div', { 'data-testid': 'calendar-icon' })),
+  Play: vi.fn(() => React.createElement('div', { 'data-testid': 'play-icon' })),
+  Pause: vi.fn(() => React.createElement('div', { 'data-testid': 'pause-icon' })),
 }));
 
 // Mock useAuth to return an admin user
@@ -31,8 +35,23 @@ vi.mock('../../services/gameSettings', () => ({
   },
 }));
 
+// Mock gameTimeService
+vi.mock('../../services/gameTimeService', () => ({
+  gameTimeService: {
+    getCurrentGameDate: vi.fn(),
+    getGameTimeState: vi.fn(),
+    getGameTimeLog: vi.fn(),
+    advanceGameTime: vi.fn(),
+    toggleGameTimePause: vi.fn(),
+    formatGameDate: vi.fn(),
+    getTimeUntilNextUpdate: vi.fn(),
+    isGameTimePaused: vi.fn(),
+    setGameTimePaused: vi.fn(),
+  },
+}));
+
 describe('AdminPage', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     // Reset all mocks before each test
     vi.clearAllMocks();
     
@@ -51,13 +70,26 @@ describe('AdminPage', () => {
     
     (gameSettingsService.updateGameSetting as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
     (gameSettingsService.applyPigeonCapPenaltiesForAllUsers as ReturnType<typeof vi.fn>).mockResolvedValue(10);
+    
+    // Default game time service mocks
+    const { gameTimeService } = await import('../../services/gameTimeService');
+    (gameTimeService.getCurrentGameDate as ReturnType<typeof vi.fn>).mockResolvedValue('1900-01-01');
+    (gameTimeService.getGameTimeState as ReturnType<typeof vi.fn>).mockResolvedValue({
+      current_game_date: '1900-01-01',
+      update_count: 0,
+      is_paused: false,
+    });
+    (gameTimeService.getGameTimeLog as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (gameTimeService.formatGameDate as ReturnType<typeof vi.fn>).mockReturnValue('Monday, January 1, 1900');
+    (gameTimeService.getTimeUntilNextUpdate as ReturnType<typeof vi.fn>).mockResolvedValue('2u 30m');
+    (gameTimeService.isGameTimePaused as ReturnType<typeof vi.fn>).mockResolvedValue(false);
   });
 
   it('renders admin panel title', async () => {
     customRender(<AdminPage />);
-    // The new UI does not have 'Admin Panel 🛠️', so just check for the main section
+    // Check for the Game Time Management section which is now first
     await waitFor(() => {
-      expect(screen.getByText('Game Settings')).toBeInTheDocument();
+      expect(screen.getByText('Game Time Management')).toBeInTheDocument();
     });
   });
 
