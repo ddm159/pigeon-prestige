@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { competitionService } from '../services/competitionService';
+import { seasonService } from '../services/seasonService';
 import type { Season, SeasonStatus } from '../types/competition';
 
 /**
@@ -20,7 +20,7 @@ export const useSeasonManagement = () => {
     try {
       setLoadingSeasons(true);
       setError(null);
-      const data = await competitionService.getSeasons();
+      const data = await seasonService.getSeasons();
       setSeasons(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load seasons');
@@ -36,7 +36,7 @@ export const useSeasonManagement = () => {
     try {
       setLoadingSeasons(true);
       setError(null);
-      const season = await competitionService.getActiveSeason();
+      const season = await seasonService.getActiveSeason();
       setActiveSeason(season);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load active season');
@@ -52,7 +52,7 @@ export const useSeasonManagement = () => {
     try {
       setLoading(true);
       setError(null);
-      const newSeason = await competitionService.createSeason(name, startDate, endDate);
+      const newSeason = await seasonService.createSeason(name, startDate, endDate);
       setSeasons(prev => [newSeason, ...prev]);
       return newSeason;
     } catch (err) {
@@ -70,7 +70,7 @@ export const useSeasonManagement = () => {
     try {
       setLoading(true);
       setError(null);
-      const updatedSeason = await competitionService.updateSeasonStatus(seasonId, status);
+      const updatedSeason = await seasonService.updateSeasonStatus(seasonId, status);
       setSeasons(prev => prev.map(s => s.id === seasonId ? updatedSeason : s));
       
       // Update active season if needed

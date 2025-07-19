@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { competitionService } from '../services/competitionService';
+import { competitionOrchestratorService } from '../services/competitionOrchestratorService';
 import type { SeasonStanding, RaceResult } from '../types/competition';
 
 /**
@@ -19,7 +19,7 @@ export const useSeasonStandings = () => {
     try {
       setLoadingStandings(true);
       setError(null);
-      const data = await competitionService.getSeasonStandings(seasonId, divisionId);
+      const data = await competitionOrchestratorService.getSeasonStandings(seasonId, divisionId);
       setSeasonStandings(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load season standings');
@@ -34,7 +34,7 @@ export const useSeasonStandings = () => {
   const getUserSeasonStanding = useCallback(async (seasonId: string, userId: string) => {
     try {
       setError(null);
-      return await competitionService.getUserSeasonStanding(seasonId, userId);
+      return await competitionOrchestratorService.getUserSeasonStanding(seasonId, userId);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to get user season standing');
       return null;
@@ -53,7 +53,7 @@ export const useSeasonStandings = () => {
     try {
       setLoading(true);
       setError(null);
-      const updatedStanding = await competitionService.updateSeasonStandingPoints(
+      const updatedStanding = await competitionOrchestratorService.updateSeasonStandingPoints(
         seasonId,
         userId,
         pointsToAdd,

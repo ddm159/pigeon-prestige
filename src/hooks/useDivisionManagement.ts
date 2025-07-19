@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { competitionService } from '../services/competitionService';
+import { divisionService } from '../services/divisionService';
 import type { Division, DivisionType, DivisionStats } from '../types/competition';
 
 /**
@@ -20,7 +20,7 @@ export const useDivisionManagement = () => {
     try {
       setLoadingDivisions(true);
       setError(null);
-      const data = await competitionService.getDivisions();
+      const data = await divisionService.getDivisions();
       setDivisions(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load divisions');
@@ -35,7 +35,7 @@ export const useDivisionManagement = () => {
   const getDivisionByCode = useCallback(async (divisionCode: DivisionType): Promise<Division | null> => {
     try {
       setError(null);
-      return await competitionService.getDivisionByCode(divisionCode);
+      return await divisionService.getDivisionByCode(divisionCode);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to get division');
       return null;
@@ -49,7 +49,7 @@ export const useDivisionManagement = () => {
     try {
       setLoadingStats(true);
       setError(null);
-      const stats = await competitionService.getDivisionStats(divisionId);
+      const stats = await divisionService.getDivisionStats(divisionId);
       setDivisionStats(stats);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load division stats');
