@@ -10,7 +10,8 @@ import {
   ShoppingCart, 
   LogOut,
   User,
-  Palette
+  Palette,
+  Award
 } from 'lucide-react';
 import GameTimeDisplay from './GameTimeDisplay';
 
@@ -27,6 +28,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Pigeons', href: '/pigeons', icon: Users },
     { name: 'Breeding', href: '/breeding', icon: Heart },
     { name: 'Racing', href: '/racing', icon: Trophy },
+    { name: 'Competition', href: '/competition', icon: Award },
     { name: 'Maintenance', href: '/maintenance', icon: Wrench },
     { name: 'Market', href: '/market', icon: ShoppingCart },
     { name: 'Feeding Center', href: '/feeding-center', icon: Users },
