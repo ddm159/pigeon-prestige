@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/useAuth';
 import { pigeonService } from '../services/pigeonService';
 import type { Pigeon } from '../types/pigeon';
 import FoodShortageWarning from '../components/FoodShortageWarning';
+import WeatherWidget from '../components/WeatherWidget';
 
 const HomePage: React.FC = () => {
   console.log('🏠 HomePage - component rendering');
@@ -14,8 +15,13 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold mb-4">TEST - HomePage Working!</h1>
-      <p className="text-gray-600 mb-4">If you can see this, the HomePage is rendering correctly.</p>
+      <h1 className="text-3xl font-bold mb-4">Pigeon Prestige</h1>
+      <p className="text-gray-600 mb-4">Welcome to your pigeon racing empire!</p>
+      
+      {/* Weather Widget */}
+      <div className="max-w-4xl">
+        <WeatherWidget />
+      </div>
       
       {/* Food Shortage Warning */}
       {user && <FoodShortageWarning userId={user.id} />}
