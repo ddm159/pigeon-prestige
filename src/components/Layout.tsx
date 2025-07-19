@@ -12,6 +12,7 @@ import {
   User,
   Palette
 } from 'lucide-react';
+import GameTimeDisplay from './GameTimeDisplay';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -45,6 +46,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <h1 className="text-2xl font-bold text-primary-600">
                 🐦 Pigeon Prestige
               </h1>
+            </div>
+
+            {/* Game Time Display - Center */}
+            <div className="flex-1 flex justify-center">
+              <GameTimeDisplay />
             </div>
 
             {/* User Info */}
