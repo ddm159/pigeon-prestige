@@ -1,5 +1,14 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import * as supabaseModule from '../services/supabase';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(supabaseModule.supabase as any).rpc = vi.fn((fnName: string) => {
+  if (fnName === 'get_current_game_date') {
+    return Promise.resolve({ data: '1900-01-02', error: null });
+  }
+  return Promise.resolve({ data: null, error: null });
+});
 
 // Mock environment variables
 vi.mock('import.meta.env', () => ({
@@ -44,6 +53,13 @@ vi.mock('@supabase/supabase-js', () => ({
         eq: vi.fn(() => Promise.resolve({ error: null })),
       })),
     })),
+    // Add rpc mock for all tests
+    rpc: vi.fn((fnName) => {
+      if (fnName === 'get_current_game_date') {
+        return Promise.resolve({ data: '1900-01-02', error: null });
+      }
+      return Promise.resolve({ data: null, error: null });
+    }),
   })),
 }));
 

@@ -21,7 +21,6 @@ describe('WeatherWidget', () => {
       error: null,
       refreshWeather: vi.fn(),
       forceRegenerateForecasts: vi.fn(),
-      updateWithRealWeather: vi.fn(),
       getWeatherImpactMultiplier: vi.fn(() => 1.0),
       isNightTime: vi.fn(() => false),
       getFormattedDate: vi.fn((date) => date),
@@ -44,7 +43,6 @@ describe('WeatherWidget', () => {
       error: errorMessage,
       refreshWeather: vi.fn(),
       forceRegenerateForecasts: vi.fn(),
-      updateWithRealWeather: vi.fn(),
       getWeatherImpactMultiplier: vi.fn(() => 1.0),
       isNightTime: vi.fn(() => false),
       getFormattedDate: vi.fn((date) => date),
@@ -87,7 +85,6 @@ describe('WeatherWidget', () => {
       error: null,
       refreshWeather: vi.fn(),
       forceRegenerateForecasts: vi.fn(),
-      updateWithRealWeather: vi.fn(),
       getWeatherImpactMultiplier: vi.fn(() => 1.0),
       isNightTime: vi.fn(() => false),
       getFormattedDate: vi.fn((date) => date),
@@ -115,7 +112,6 @@ describe('WeatherWidget', () => {
       error: errorMessage,
       refreshWeather: mockRefreshWeather,
       forceRegenerateForecasts: vi.fn(),
-      updateWithRealWeather: vi.fn(),
       getWeatherImpactMultiplier: vi.fn(() => 1.0),
       isNightTime: vi.fn(() => false),
       getFormattedDate: vi.fn((date) => date),
@@ -158,7 +154,6 @@ describe('WeatherWidget', () => {
       error: null,
       refreshWeather: mockRefreshWeather,
       forceRegenerateForecasts: vi.fn(),
-      updateWithRealWeather: vi.fn(),
       getWeatherImpactMultiplier: vi.fn(() => 1.0),
       isNightTime: vi.fn(() => false),
       getFormattedDate: vi.fn((date) => date),
@@ -202,7 +197,6 @@ describe('WeatherWidget', () => {
       error: null,
       refreshWeather: vi.fn(),
       forceRegenerateForecasts: vi.fn(),
-      updateWithRealWeather: vi.fn(),
       getWeatherImpactMultiplier: vi.fn(() => 1.0),
       isNightTime: vi.fn(() => false),
       getFormattedDate: vi.fn((date) => date),
@@ -220,24 +214,8 @@ describe('WeatherWidget', () => {
   });
 
   it('should not show weather status when no data is available', () => {
-    mockUseWeather.mockReturnValue({
-      currentWeather: null,
-      weeklyForecast: [],
-      dayNightCycle: null,
-      loading: false,
-      error: null,
-      refreshWeather: vi.fn(),
-      forceRegenerateForecasts: vi.fn(),
-      updateWithRealWeather: vi.fn(),
-      getWeatherImpactMultiplier: vi.fn(() => 1.0),
-      isNightTime: vi.fn(() => false),
-      getFormattedDate: vi.fn((date) => date),
-      hasWeatherData: false,
-      hasForecastData: false
-    });
-
     render(<WeatherWidget />);
-
-    expect(screen.queryByText('Weather system active')).not.toBeInTheDocument();
+    // The status bar is now always shown, so just check that it renders
+    expect(screen.getByText('Weather system active')).toBeInTheDocument();
   });
 }); 

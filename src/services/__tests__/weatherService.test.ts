@@ -1,6 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { weatherService } from '../weatherService';
 import type { WeatherForecast, WeatherDisplay } from '../../types/weather';
+import * as supabaseModule from '../supabase';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(supabaseModule.supabase as any).rpc = vi.fn((fnName: string) => {
+  if (fnName === 'get_current_game_date') {
+    return Promise.resolve({ data: '1900-01-02', error: null });
+  }
+  return Promise.resolve({ data: null, error: null });
+});
 
 // Mock Supabase
 vi.mock('../supabase', () => ({
