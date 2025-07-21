@@ -14,10 +14,7 @@ const WeatherWidget: React.FC = () => {
     loading,
     error,
     refreshWeather,
-    forceRegenerateForecasts,
-    updateWithRealWeather,
-    hasWeatherData,
-    hasForecastData
+    forceRegenerateForecasts
   } = useWeather();
 
   const handleDateSelect = (dateId: string) => {
@@ -65,41 +62,32 @@ const WeatherWidget: React.FC = () => {
         onDateSelect={handleDateSelect}
       />
 
-      {/* Weather Status */}
-      {hasWeatherData && hasForecastData && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="text-green-500">✅</div>
-              <span className="text-sm text-green-800">
-                Weather system active
-              </span>
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={handleRefresh}
-                className="text-sm text-green-600 hover:text-green-800 underline"
-              >
-                Refresh
-              </button>
-              <button
-                onClick={forceRegenerateForecasts}
-                className="text-sm text-blue-600 hover:text-blue-800 underline"
-                disabled={loading}
-              >
-                {loading ? 'Regenerating...' : 'Regenerate'}
-              </button>
-              <button
-                onClick={updateWithRealWeather}
-                className="text-sm text-purple-600 hover:text-purple-800 underline"
-                disabled={loading}
-              >
-                {loading ? 'Fetching...' : 'Real Weather'}
-              </button>
-            </div>
+      {/* Weather Status and Actions */}
+      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="text-green-500">✅</div>
+            <span className="text-sm text-green-800">
+              Weather system active
+            </span>
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={handleRefresh}
+              className="text-sm text-green-600 hover:text-green-800 underline"
+            >
+              Refresh
+            </button>
+            <button
+              onClick={forceRegenerateForecasts}
+              className="text-sm text-blue-600 hover:text-blue-800 underline"
+              disabled={loading}
+            >
+              {loading ? 'Regenerating...' : 'Regenerate'}
+            </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

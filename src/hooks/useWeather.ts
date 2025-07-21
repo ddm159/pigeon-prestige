@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { weatherService } from '../services/weatherService';
-import { realWeatherService } from '../services/realWeatherService';
 import type { WeatherDisplay, DayNightCycle } from '../types/weather';
 
 /**
@@ -110,26 +109,6 @@ export const useWeather = () => {
   }, [loadCurrentWeather, loadWeeklyForecast, updateDayNightCycle]);
 
   /**
-   * Update weather with real Belgian data
-   */
-  const updateWithRealWeather = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      await realWeatherService.updateWithRealWeather();
-      await loadCurrentWeather();
-      await loadWeeklyForecast();
-      updateDayNightCycle();
-    } catch (err) {
-      console.error('Error updating with real weather:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update with real weather');
-    } finally {
-      setLoading(false);
-    }
-  }, [loadCurrentWeather, loadWeeklyForecast, updateDayNightCycle]);
-
-  /**
    * Get weather impact multiplier for racing calculations
    */
   const getWeatherImpactMultiplier = useCallback(() => {
@@ -203,7 +182,6 @@ export const useWeather = () => {
     // Actions
     refreshWeather,
     forceRegenerateForecasts,
-    updateWithRealWeather,
     getWeatherImpactMultiplier,
     isNightTime,
     getFormattedDate,

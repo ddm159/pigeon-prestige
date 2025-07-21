@@ -5,7 +5,7 @@
 export type WeatherType = 'sunny' | 'rainy' | 'windy' | 'foggy' | 'stormy' | 'cloudy';
 
 export interface WeatherForecast {
-  id: string;
+  id?: string;
   date: string; // YYYY-MM-DD format
   weather_type: WeatherType;
   severity: number; // 1-100

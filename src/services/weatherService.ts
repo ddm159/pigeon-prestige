@@ -11,6 +11,7 @@ import {
   SEASONAL_TEMPERATURES,
   TEMPERATURE_VARIATION
 } from '../types/weather';
+import { gameTimeService } from './gameTimeService';
 
 /**
  * Weather service for managing weather forecasts and day/night cycles
@@ -117,6 +118,11 @@ class WeatherService {
     const season = this.getSeason(date);
     const seasonRange = SEASONAL_TEMPERATURES[season];
     
+    // Debug log for tracing temperature generation
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Weather Debug] Date:', date.toISOString().split('T')[0], 'Month:', date.getMonth() + 1, 'Season:', season, 'Range:', seasonRange);
+    }
+    
     let targetTemperature: number;
     
     if (previousTemperature !== undefined) {
@@ -161,7 +167,6 @@ class WeatherService {
     const isNight = false; // This will be updated by the day/night cycle logic
     
     return {
-      id: '', // Will be set by database
       date,
       weather_type: weatherType,
       severity,
@@ -173,11 +178,12 @@ class WeatherService {
   }
 
   /**
-   * Generate a 7-day weather forecast
+   * Generate a 7-day weather forecast based on the in-game date
    */
   async generateWeeklyForecast(): Promise<WeatherForecast[]> {
     const forecasts: WeatherForecast[] = [];
-    const today = new Date();
+    const gameDateString = await gameTimeService.getCurrentGameDate();
+    const today = new Date(gameDateString); // Use in-game date
     let previousWeather: WeatherType | undefined;
     let previousTemperature: number | undefined;
 
@@ -228,13 +234,14 @@ class WeatherService {
   }
 
   /**
-   * Get weather forecasts for the next 7 days
+   * Get weather forecasts for the next 7 days (using in-game date)
    */
   async getWeeklyForecast(): Promise<WeatherForecast[]> {
-    const today = new Date();
+    const gameDateString = await gameTimeService.getCurrentGameDate();
+    const today = new Date(gameDateString);
     const endDate = new Date(today);
     endDate.setDate(today.getDate() + 6);
-    
+
     const startDateString = today.toISOString().split('T')[0];
     const endDateString = endDate.toISOString().split('T')[0];
 
@@ -254,11 +261,11 @@ class WeatherService {
   }
 
   /**
-   * Get current weather (today's forecast)
+   * Get current weather (today's forecast, using in-game date)
    */
   async getCurrentWeather(): Promise<WeatherForecast | null> {
-    const today = new Date().toISOString().split('T')[0];
-    return this.getForecastForDate(today);
+    const gameDateString = await gameTimeService.getCurrentGameDate();
+    return this.getForecastForDate(gameDateString);
   }
 
   /**
