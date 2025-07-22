@@ -111,7 +111,7 @@ export const competitionService = {
         .from('league_assignments')
         .select('*', { count: 'exact', head: true })
         .eq('league_id', league.id)
-        // .eq('season_id', seasonId); // TODO: Add seasonId filter if needed
+        // TODO: Add seasonId filter if needed
       const aiToAdd = 20 - (count ?? 0);
       for (let i = 0; i < aiToAdd; i++) {
         // TODO: Create AI user, get unique AI name, and assign to league
