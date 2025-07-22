@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { competitionService } from '../competitionService';
 
 // Helper to create a chainable mock for Supabase queries
-function createChainableSelectMock(data: any) {
+function createChainableSelectMock(data: unknown) {
   const chain = {
     eq: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnValue({ data }),
@@ -10,35 +10,10 @@ function createChainableSelectMock(data: any) {
   return chain;
 }
 
-// Mock supabase
-const mockInsert = vi.fn();
-const mockUpsert = vi.fn();
-const mockDelete = vi.fn();
-
-// Define spies at module scope
-let usersInsertSpy: any;
+// Use explicit types
 let aiUserInsertCount = 0;
-let leagueAssignmentsInsertCount = 0;
 let leagueAssignmentsUpsertCount = 0;
 let pigeonsDeleteCount = 0;
-
-const usersInsertSingleSpy = () => ({ data: { id: 'ai_user_id', username: 'AI Player', created_at: '', email: 'ai@example.com' }, error: null });
-const usersInsertSelectSpy = vi.fn();
-
-const leagueAssignmentsInsertSingleSpy = () => ({ data: { id: 'assignment_id', error: null } });
-const leagueAssignmentsInsertSelectSpy = vi.fn();
-const leagueAssignmentsInsertSpy = vi.fn().mockImplementation(() => {
-  let chain: any;
-  chain = {
-    select: vi.fn(() => chain),
-    single: leagueAssignmentsInsertSingleSpy,
-  };
-  return chain;
-});
-const leagueAssignmentsUpsertSpy = vi.fn().mockReturnValue({ data: {}, error: null });
-const pigeonsDeleteSpy = vi.fn().mockReturnValue({
-  eq: vi.fn().mockReturnValue({ error: null }),
-});
 
 vi.mock('../supabase', () => ({
   supabase: {
@@ -83,9 +58,8 @@ vi.mock('../supabase', () => ({
           };
           return chain;
         };
-        usersInsertSpy = vi.fn(insertImpl);
         return {
-          insert: usersInsertSpy,
+          insert: insertImpl,
         };
       }
       if (table === 'league_assignments') {
@@ -96,15 +70,14 @@ vi.mock('../supabase', () => ({
             lt: vi.fn().mockReturnThis(),
             data: [{ user_id: 'inactive_user_id' }],
           }),
-          insert: (...args: any[]) => {
-            leagueAssignmentsInsertCount++;
+          insert: () => {
             const chain = {
               select: () => chain,
               single: () => ({ data: { id: 'assignment_id', error: null } }),
             };
             return chain;
           },
-          upsert: (...args: any[]) => {
+          upsert: () => {
             leagueAssignmentsUpsertCount++;
             return { data: {}, error: null };
           },
@@ -152,18 +125,9 @@ vi.mock('../supabase', () => ({
   },
 }));
 
-function resetSupabaseMocks() {
-  if (usersInsertSpy && usersInsertSpy.mockReset) usersInsertSpy.mockReset();
-  leagueAssignmentsInsertSpy.mockReset();
-  leagueAssignmentsUpsertSpy.mockReset();
-  pigeonsDeleteSpy.mockReset();
-}
-
 describe('competitionService.handleSeasonTransition (integration)', () => {
   beforeEach(() => {
-    resetSupabaseMocks();
     aiUserInsertCount = 0;
-    leagueAssignmentsInsertCount = 0;
     leagueAssignmentsUpsertCount = 0;
     pigeonsDeleteCount = 0;
   });
