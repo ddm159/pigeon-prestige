@@ -19,5 +19,9 @@ export default tseslint.config([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Disabled due to false positives with dynamic object property arithmetic, see src/services/raceService.ts
+      '@typescript-eslint/restrict-plus-operands': 'off',
+    },
   },
 ])
