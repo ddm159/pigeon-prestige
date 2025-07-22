@@ -14,6 +14,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 import ComponentLibrary from './components/ComponentLibrary';
 import FoodShop from './components/FoodShop';
 import FeedingCenterPage from './pages/FeedingCenterPage';
+import CompetitionPage from './pages/CompetitionPage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -129,6 +130,16 @@ const AppContent = () => {
           <ProtectedRoute>
             <Layout>
               <FeedingCenterPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/competition"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <CompetitionPage />
             </Layout>
           </ProtectedRoute>
         }

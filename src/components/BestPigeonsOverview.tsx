@@ -28,7 +28,6 @@ export const BestPigeonsOverview: React.FC<BestPigeonsOverviewProps> = ({
     category,
     seasonId
   );
-  // Fetch usernames for all owner_ids in pigeons
   const ownerIds = pigeons.map((p) => p.owner_id);
   const { usernames, loading: usernamesLoading } = useUsernames(ownerIds);
 
@@ -62,7 +61,6 @@ export const BestPigeonsOverview: React.FC<BestPigeonsOverviewProps> = ({
                   }
                 >
                   <td>{idx + 1}</td>
-                  {/* TODO: Replace with pigeon name lookup if needed */}
                   <td>{pigeon.name}</td>
                   <td>
                     {usernamesLoading

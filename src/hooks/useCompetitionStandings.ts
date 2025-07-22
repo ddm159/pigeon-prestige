@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { competitionService } from '../services/competitionService';
 import type { Standing } from '../types/competition';
+import isEqual from 'lodash.isequal';
 
 /**
  * Custom hook to fetch competition standings for a given league, category, and season.
@@ -25,11 +26,12 @@ export function useCompetitionStandings(
       .then((leagues) => {
         const league = leagues.find((l) => l.type === leagueType);
         if (!league) throw new Error('League not found');
-        // TODO: Use category to filter standings if needed (future extension)
         return competitionService.getStandings(league.id, seasonId);
       })
       .then((data) => {
-        if (isMounted) setStandings(data);
+        if (isMounted && !isEqual(data, standings)) {
+          setStandings(data);
+        }
       })
       .catch((err) => {
         if (isMounted) setError(err.message || 'Failed to fetch standings');

@@ -213,16 +213,23 @@ describe('useWeather', () => {
   it('should format dates correctly', () => {
     const { result } = renderHook(() => useWeather());
 
+    // Use local date string (YYYY-MM-DD) for today, tomorrow, and futureDate
+    const toLocalDateString = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
     const futureDate = new Date(today);
     futureDate.setDate(today.getDate() + 3);
 
-    expect(result.current.getFormattedDate(today.toISOString().split('T')[0])).toBe('Today');
-    expect(result.current.getFormattedDate(tomorrow.toISOString().split('T')[0])).toBe('Tomorrow');
-    
-    const formattedFuture = result.current.getFormattedDate(futureDate.toISOString().split('T')[0]);
+    expect(result.current.getFormattedDate(toLocalDateString(today))).toBe('Today');
+    expect(result.current.getFormattedDate(toLocalDateString(tomorrow))).toBe('Tomorrow');
+    const formattedFuture = result.current.getFormattedDate(toLocalDateString(futureDate));
     expect(formattedFuture).toMatch(/[A-Za-z]{3}, [A-Za-z]{3} \d+/);
   });
 

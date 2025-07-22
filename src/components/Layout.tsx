@@ -19,6 +19,7 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
+  console.log('Layout render');
   const { gameUser, signOut } = useAuth();
   const location = useLocation();
 
@@ -27,6 +28,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Pigeons', href: '/pigeons', icon: Users },
     { name: 'Breeding', href: '/breeding', icon: Heart },
     { name: 'Racing', href: '/racing', icon: Trophy },
+    { name: 'Competition', href: '/competition', icon: Trophy },
     { name: 'Maintenance', href: '/maintenance', icon: Wrench },
     { name: 'Market', href: '/market', icon: ShoppingCart },
     { name: 'Feeding Center', href: '/feeding-center', icon: Users },

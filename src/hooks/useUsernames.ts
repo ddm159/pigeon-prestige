@@ -20,7 +20,6 @@ export function useUsernames(userIds: string[]) {
     let isMounted = true;
     setLoading(true);
     setError(null);
-    // TODO: Support AI users if needed
     fetchUsernames(userIds)
       .then((map) => {
         if (isMounted) setUsernames(map);

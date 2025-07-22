@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useCompetitionStandings } from '../hooks/useCompetitionStandings';
 import { useUsernames } from '../hooks/useUsernames';
-import { BestPigeonsOverview } from '../components/BestPigeonsOverview';
+import { useCurrentSeason } from '../hooks/useCurrentSeason';
+import { useAuth } from '../contexts/useAuth';
+// Removed: import { BestPigeonsOverview } from '../components/BestPigeonsOverview';
 
 /**
  * CompetitionPage displays league standings and allows switching between leagues and race categories.
@@ -18,23 +20,33 @@ const CATEGORY_OPTIONS = [
   { value: 'u1', label: 'Under 1 Year' },
 ];
 
-export const CompetitionPage: React.FC = () => {
-  const [selectedLeague, setSelectedLeague] = useState('2a'); // Default to user's main league
+const CompetitionPage: React.FC = () => {
+  // All hooks at the top, always called in the same order
+  const { user } = useAuth();
+  const currentUserId = user?.id || '';
+
+  const { season, loading: seasonLoading, error: seasonError } = useCurrentSeason();
+
+  const [selectedLeague, setSelectedLeague] = useState('2a');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  // TODO: Fetch current season from service or context
-  const currentSeasonId = 'CURRENT_SEASON_ID'; // Placeholder
-  // TODO: Get current user ID from auth context
-  const currentUserId = 'CURRENT_USER_ID'; // Placeholder
 
   const { standings, loading, error } = useCompetitionStandings(
     selectedLeague as 'pro' | '2a' | '2b' | 'international',
     selectedCategory as 'all' | 'u1',
-    currentSeasonId
+    season?.id || ''
   );
 
-  // Fetch usernames for all user_ids in standings
-  const userIds = standings.map((row) => row.user_id);
+  const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+  const userIds = useMemo(
+    () => standings.map((row) => row.user_id).filter(id => uuidRegex.test(id)),
+    [standings]
+  );
   const { usernames, loading: usernamesLoading } = useUsernames(userIds);
+
+  // Handle loading and error states in the render
+  if (seasonLoading) return <div>Loading season...</div>;
+  if (seasonError) return <div>Error: {seasonError}</div>;
+  if (!season) return <div>No active season found.</div>;
 
   return (
     <div>
@@ -87,20 +99,11 @@ export const CompetitionPage: React.FC = () => {
             {standings.map((row) => {
               const isCurrentUser = row.user_id === currentUserId;
               return (
-                <tr
-                  key={row.user_id}
-                  style={
-                    isCurrentUser
-                      ? { background: '#e0f7fa', fontWeight: 'bold', color: '#00796b' }
-                      : undefined
-                  }
+                <tr key={row.user_id}
+                  style={isCurrentUser ? { background: '#e0f7fa', fontWeight: 'bold', color: '#00796b' } : undefined}
                 >
                   <td>{row.position ?? '-'}</td>
-                  <td>
-                    {usernamesLoading
-                      ? '...'
-                      : usernames[row.user_id] || row.user_id}
-                  </td>
+                  <td>{usernamesLoading ? '...' : usernames[row.user_id] || row.user_id}</td>
                   <td>{row.points}</td>
                   <td>{row.tiebreaker_points}</td>
                 </tr>
@@ -109,12 +112,12 @@ export const CompetitionPage: React.FC = () => {
           </tbody>
         </table>
       )}
-      <BestPigeonsOverview
+      {/* <BestPigeonsOverview
         competitionType={selectedLeague as 'pro' | '2a' | '2b' | 'international'}
         category={selectedCategory as 'all' | 'u1'}
         seasonId={currentSeasonId}
         currentUserId={currentUserId}
-      />
+      /> */}
     </div>
   );
 };
