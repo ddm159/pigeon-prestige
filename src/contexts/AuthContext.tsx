@@ -34,7 +34,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const getInitialSession = async () => {
       try {
         const currentUser = await authService.getCurrentUser();
-        setUser(currentUser);
+        // Only set user if it matches the expected User type
+        if (currentUser && 'email' in currentUser && 'created_at' in currentUser) {
+          setUser(currentUser as User);
+        } else {
+          setUser(null);
+        }
         
         if (currentUser) {
           try {
@@ -47,7 +52,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             // If profile doesn't exist, create it manually
             try {
               console.log('Creating initial user profile manually...');
-              await authService.createUserProfile(currentUser.id, currentUser.email || '', 'User');
+              await authService.createUserProfile(
+                currentUser.id,
+                'email' in currentUser && typeof currentUser.email === 'string' ? currentUser.email : '',
+                'User'
+              );
               const newProfile = await authService.getUserProfile(currentUser.id);
               setGameUser(newProfile);
             } catch (createError) {
@@ -68,7 +77,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event: string, session: Session | null) => {
-        setUser(session?.user ?? null);
+        // Only set user if it matches the expected User type
+        if (session?.user && 'email' in session.user && 'created_at' in session.user) {
+          setUser(session.user as User);
+        } else {
+          setUser(null);
+        }
         
         if (session?.user) {
           try {
@@ -81,7 +95,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             // If profile doesn't exist, create it manually
             try {
               console.log('Creating user profile manually...');
-              await authService.createUserProfile(session.user.id, session.user.email || '', 'User');
+              await authService.createUserProfile(
+                session.user.id,
+                'email' in session.user && typeof session.user.email === 'string' ? session.user.email : '',
+                'User'
+              );
               const newProfile = await authService.getUserProfile(session.user.id);
               setGameUser(newProfile);
             } catch (createError) {

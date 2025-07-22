@@ -145,13 +145,14 @@ export const raceService = {
         flapacity,
       } = pigeon as PigeonStats;
       // Type guard, destructuring, and explicit Number() ensure type safety for pigeon stats (see PRO_CODING_GUIDELINES.md)
-      const perf =
+      const perf = Number(
         Number(speed) * 0.3 +
         Number(endurance) * 0.2 +
         Number(sky_iq) * 0.15 +
         Number(aerodynamics) * 0.15 +
         Number(wing_power) * 0.1 +
-        Number(flapacity) * 0.1;
+        Number(flapacity) * 0.1
+      );
       const performance = perf / 100;
       const randomFactor = 0.8 + Math.random() * 0.4;
       const finishTime = performance > 0 ? (100 / performance) * randomFactor : 0;
@@ -161,7 +162,7 @@ export const raceService = {
         finish_position: 0
       };
     });
-    results.sort((a, b) => (a.finish_time || 0) - (b.finish_time || 0));
+    results.sort((a, b) => (Number(a.finish_time) || 0) - (Number(b.finish_time) || 0));
     results.forEach((result, index) => {
       result.finish_position = index + 1;
     });
