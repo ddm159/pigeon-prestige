@@ -1,80 +1,69 @@
--- Competition System Schema for Pigeon Racing Game
--- All tables are normalized and documented for maintainability and scalability
+-- Competition System Schema for Pigeon Prestige
+-- Follows project guidelines and supports all league, AI, and race requirements
 
--- League tiers and race types as enums
-CREATE TYPE league_tier AS ENUM ('pro', 'second-division');
-CREATE TYPE race_type AS ENUM ('regional', 'international');
-CREATE TYPE age_group AS ENUM ('all', 'under-1-year');
-
--- Leagues table
-CREATE TABLE leagues (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    tier league_tier NOT NULL,
-    season INTEGER NOT NULL
+-- Seasons table: tracks each competition season
+CREATE TABLE IF NOT EXISTS seasons (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name text NOT NULL,
+    start_date date NOT NULL,
+    end_date date NOT NULL,
+    is_active boolean NOT NULL DEFAULT true,
+    created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- AI profiles table
-CREATE TABLE ai_profiles (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    personality TEXT NOT NULL,
-    avatar_url TEXT
+-- Leagues table: Pro, Regional 2A, Regional 2B, International, etc.
+CREATE TABLE IF NOT EXISTS leagues (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name text NOT NULL,
+    type text NOT NULL CHECK (type IN ('pro', '2a', '2b', 'international')),
+    is_active boolean NOT NULL DEFAULT true,
+    created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- Players table (human or AI)
-CREATE TABLE players (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID, -- present if human
-    is_human BOOLEAN NOT NULL,
-    ai_profile_id UUID, -- present if AI
-    username TEXT NOT NULL,
-    last_active TIMESTAMPTZ NOT NULL,
-    league_id UUID REFERENCES leagues(id)
+-- League assignments: which user is in which league/season
+CREATE TABLE IF NOT EXISTS league_assignments (
+    user_id uuid REFERENCES users(id) ON DELETE CASCADE,
+    league_id uuid REFERENCES leagues(id) ON DELETE CASCADE,
+    season_id uuid REFERENCES seasons(id) ON DELETE CASCADE,
+    joined_at timestamptz NOT NULL DEFAULT now(),
+    is_ai boolean NOT NULL DEFAULT false,
+    last_active timestamptz,
+    PRIMARY KEY (user_id, league_id, season_id)
 );
 
--- League assignments (tracks which player is in which league for which season)
-CREATE TABLE league_assignments (
-    player_id UUID REFERENCES players(id),
-    league_id UUID REFERENCES leagues(id),
-    season INTEGER NOT NULL,
-    PRIMARY KEY (player_id, season)
+-- Standings: points and position for each user in a league/season
+CREATE TABLE IF NOT EXISTS standings (
+    user_id uuid REFERENCES users(id) ON DELETE CASCADE,
+    league_id uuid REFERENCES leagues(id) ON DELETE CASCADE,
+    season_id uuid REFERENCES seasons(id) ON DELETE CASCADE,
+    points integer NOT NULL DEFAULT 0,
+    position integer,
+    tiebreaker_points integer NOT NULL DEFAULT 0, -- e.g., international race points
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (user_id, league_id, season_id)
 );
 
--- Races table
-CREATE TABLE races (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    type race_type NOT NULL,
-    date DATE NOT NULL,
-    league_id UUID REFERENCES leagues(id),
-    age_group age_group NOT NULL,
-    season INTEGER NOT NULL
+-- AI player names pool
+CREATE TABLE IF NOT EXISTS ai_names (
+    id serial PRIMARY KEY,
+    name text NOT NULL UNIQUE
 );
 
--- Race entries (which pigeon is entered in which race)
-CREATE TABLE race_entries (
-    race_id UUID REFERENCES races(id),
-    pigeon_id UUID NOT NULL,
-    player_id UUID REFERENCES players(id),
-    PRIMARY KEY (race_id, pigeon_id)
-);
+-- Race categories: 'all' (all pigeons), 'u1' (under 1 year)
+-- Add a column to races table for category if not present
+ALTER TABLE races ADD COLUMN IF NOT EXISTS race_category text NOT NULL DEFAULT 'all';
+-- Valid values: 'all', 'u1'
 
--- Race results
-CREATE TABLE race_results (
-    race_id UUID REFERENCES races(id),
-    pigeon_id UUID NOT NULL,
-    player_id UUID REFERENCES players(id),
-    position INTEGER NOT NULL,
-    points INTEGER NOT NULL,
-    PRIMARY KEY (race_id, pigeon_id)
-);
+-- Note: Retired pigeons are deleted from the pigeons table, not archived.
 
--- Season standings
-CREATE TABLE season_standings (
-    player_id UUID REFERENCES players(id),
-    league_id UUID REFERENCES leagues(id),
-    season INTEGER NOT NULL,
-    points INTEGER NOT NULL DEFAULT 0,
-    international_points INTEGER NOT NULL DEFAULT 0,
-    PRIMARY KEY (player_id, league_id, season)
-); 
+-- Indexes for fast lookups
+CREATE INDEX IF NOT EXISTS idx_league_assignments_league ON league_assignments(league_id);
+CREATE INDEX IF NOT EXISTS idx_league_assignments_user ON league_assignments(user_id);
+CREATE INDEX IF NOT EXISTS idx_standings_league ON standings(league_id);
+CREATE INDEX IF NOT EXISTS idx_standings_user ON standings(user_id);
+
+-- RLS Policy Comments:
+-- - Only allow users to see their own league_assignments, but standings are public.
+-- - Admins can manage all data.
+-- - AI players are managed by backend jobs/scripts.
+-- - All users can view all standings and league info. 
