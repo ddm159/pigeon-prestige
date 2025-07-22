@@ -159,7 +159,7 @@ export const competitionService = {
    * Handle season transition: promotion/relegation, AI replacement, league balancing.
    * TODO: Implement full business logic for season end.
    */
-  async handleSeasonTransition(seasonId: string): Promise<void> {
+  async handleSeasonTransition(): Promise<void> {
     // TODO: Implement promotion/relegation, AI replacement, and league balancing
     // 1. Calculate final standings
     // 2. Promote/relegate users
