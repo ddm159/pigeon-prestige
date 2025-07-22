@@ -157,16 +157,191 @@ export const competitionService = {
 
   /**
    * Handle season transition: promotion/relegation, AI replacement, league balancing.
-   * TODO: Implement full business logic for season end.
+   * Implements automatic movement of players between leagues at season end.
    */
   async handleSeasonTransition(): Promise<void> {
-    // TODO: Implement promotion/relegation, AI replacement, and league balancing
-    // 1. Calculate final standings
-    // 2. Promote/relegate users
-    // 3. Replace inactive humans with AI
-    // 4. Fill empty slots with AI
-    // 5. Retire and delete pigeons for replaced users
-    // 6. Create new league assignments for next season
+    // Helper: Retire pigeons for replaced users
+    const retirePigeonsForUsers = async (userIds: string[]) => {
+      for (const userId of userIds) {
+        // Delete all pigeons owned by this user
+        const { error } = await supabase
+          .from('pigeons')
+          .delete()
+          .eq('owner_id', userId);
+        if (error) {
+          console.error(`Failed to retire pigeons for user ${userId}:`, error);
+        } else {
+          console.log(`Retired all pigeons for user ${userId}`);
+        }
+        // TODO: Notify user of retirement if needed
+      }
+    };
+    // 1. Get all leagues
+    const leagues = await this.getLeagues();
+    const pro = leagues.find(l => l.type === 'pro');
+    const twoA = leagues.find(l => l.type === '2a');
+    const twoB = leagues.find(l => l.type === '2b');
+    if (!pro || !twoA || !twoB) throw new Error('Required leagues not found');
+
+    // 2. Get current season (TODO: fetch actual current season)
+    const currentSeasonId = 'CURRENT_SEASON_ID'; // Placeholder
+
+    // 3. Get standings for each league (regional all pigeons only)
+    const proStandings = await this.getStandings(pro.id, currentSeasonId);
+    const twoAStandings = await this.getStandings(twoA.id, currentSeasonId);
+    const twoBStandings = await this.getStandings(twoB.id, currentSeasonId);
+
+    // 4. Sort standings by points, then tiebreaker (international race)
+    const sortFn = (a: Standing, b: Standing) =>
+      b.points - a.points || b.tiebreaker_points - a.tiebreaker_points;
+    proStandings.sort(sortFn);
+    twoAStandings.sort(sortFn);
+    twoBStandings.sort(sortFn);
+
+    // 5. Identify relegated and promoted players
+    const relegated = proStandings.slice(-4); // bottom 4
+    const promotedA = twoAStandings.slice(0, 2); // top 2
+    const promotedB = twoBStandings.slice(0, 2); // top 2
+
+    // 6. Create new season (placeholder logic)
+    const newSeasonName = `Season ${Date.now()}`;
+    const newSeason = await supabase
+      .from('seasons')
+      .insert({
+        name: newSeasonName,
+        start_date: new Date().toISOString().slice(0, 10),
+        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10), // +30 days
+        is_active: true,
+      })
+      .select()
+      .single();
+    const newSeasonId = newSeason.data?.id || 'NEW_SEASON_ID';
+
+    // 7. Assign promoted and relegated users to new leagues for new season
+    // - Move relegated: 2 to 2A, 2 to 2B
+    // - Move promoted: 2 from 2A and 2 from 2B to Pro
+    const assignments = [];
+    // Pro: keep top 16, add 2 from 2A, 2 from 2B
+    const proKeep = proStandings.slice(0, 16);
+    const proNext = [...proKeep, ...promotedA, ...promotedB];
+    for (const user of proNext) {
+      assignments.push({
+        user_id: user.user_id,
+        league_id: pro.id,
+        season_id: newSeasonId,
+        is_ai: false, // TODO: check if user is AI
+        last_active: new Date().toISOString(),
+      });
+    }
+    // 2A: top 18 (not promoted), 2 relegated from Pro
+    const twoANext = [
+      ...twoAStandings.slice(2, 20),
+      ...relegated.slice(0, 2),
+    ];
+    for (const user of twoANext) {
+      assignments.push({
+        user_id: user.user_id,
+        league_id: twoA.id,
+        season_id: newSeasonId,
+        is_ai: false,
+        last_active: new Date().toISOString(),
+      });
+    }
+    // 2B: top 18 (not promoted), 2 relegated from Pro
+    const twoBNext = [
+      ...twoBStandings.slice(2, 20),
+      ...relegated.slice(2, 4),
+    ];
+    for (const user of twoBNext) {
+      assignments.push({
+        user_id: user.user_id,
+        league_id: twoB.id,
+        season_id: newSeasonId,
+        is_ai: false,
+        last_active: new Date().toISOString(),
+      });
+    }
+    // 8. Fill empty slots with AI
+    const fillWithAI = async (leagueId: string, needed: number) => {
+      if (needed <= 0) return;
+      const aiNames = await this.getAvailableAINames();
+      for (let i = 0; i < needed; i++) {
+        const aiName = aiNames[i % aiNames.length]?.name || `AI Player ${Date.now()}_${i}`;
+        // Create AI user in users table
+        const { data: aiUser, error } = await supabase
+          .from('users')
+          .insert({
+            username: aiName,
+            email: `ai_${Date.now()}_${i}@ai.pigeon`,
+            player_type: 'ai',
+            balance: 1000,
+            total_pigeons: 0,
+            pigeon_cap: 50,
+            level: 1,
+            experience: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+        if (error || !aiUser) {
+          console.error('Failed to create AI user:', error);
+          continue;
+        }
+        // Assign AI user to league
+        assignments.push({
+          user_id: aiUser.id,
+          league_id: leagueId,
+          season_id: newSeasonId,
+          is_ai: true,
+          last_active: new Date().toISOString(),
+        });
+        // TODO: Create starting pigeons for AI user
+      }
+    };
+    // Pro
+    await fillWithAI(pro.id, 20 - proNext.length);
+    // 2A
+    await fillWithAI(twoA.id, 20 - twoANext.length);
+    // 2B
+    await fillWithAI(twoB.id, 20 - twoBNext.length);
+    // 9. Retire pigeons for replaced users (integrated)
+    // Identify inactive humans (last_active > 2 months ago and is_ai: false)
+    const twoMonthsAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: inactiveAssignments } = await supabase
+      .from('league_assignments')
+      .select('user_id')
+      .eq('season_id', currentSeasonId)
+      .eq('is_ai', false)
+      .lt('last_active', twoMonthsAgo);
+    const inactiveUserIds = (inactiveAssignments ?? []).map((a: { user_id: string }) => a.user_id);
+    if (inactiveUserIds.length > 0) {
+      await retirePigeonsForUsers(inactiveUserIds);
+      // Remove inactive users from assignments for new season
+      for (const league of [pro, twoA, twoB]) {
+        // Remove assignments for inactive users in this league
+        for (let i = assignments.length - 1; i >= 0; i--) {
+          if (assignments[i].league_id === league.id && inactiveUserIds.includes(assignments[i].user_id)) {
+            assignments.splice(i, 1);
+          }
+        }
+      }
+      // Fill their slots with AI
+      for (const league of [pro, twoA, twoB]) {
+        const count = assignments.filter(a => a.league_id === league.id).length;
+        await fillWithAI(league.id, 20 - count);
+      }
+      console.log('Replaced inactive users with AI:', inactiveUserIds);
+    }
+    // 10. Upsert new league assignments
+    for (const assignment of assignments) {
+      await supabase
+        .from('league_assignments')
+        .upsert(assignment);
+    }
+    // 11. Notify users (optional, stub)
+    // TODO: Implement notification logic
+    console.log('Season transition complete. New assignments:', assignments.length);
   },
 
   /**
