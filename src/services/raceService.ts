@@ -3,6 +3,8 @@ import { raceSchema, raceParticipantSchema, validateRace, validateRaceParticipan
 import { pigeonSchema } from '../types/pigeonSchema';
 import { z } from 'zod';
 import type { Race, RaceParticipant } from '../types/pigeon';
+import type { Pigeon } from '../types/pigeon';
+import type { PigeonRaceResult, PigeonRaceEvent } from '../types/race';
 
 type PigeonStats = {
   speed: number;
@@ -26,6 +28,126 @@ function isPigeonStats(obj: unknown): obj is PigeonStats {
   return keys.every(
     (key) => typeof (obj as Record<string, unknown>)[key] === 'number'
   );
+}
+
+/**
+ * Generates a stat-driven event script and race result for a pigeon.
+ * @param pigeon - The pigeon object
+ * @param raceConfig - { startTime: string, distanceKm: number, weather: any }
+ * @returns PigeonRaceResult
+ */
+export function generatePigeonRaceResult(
+  pigeon: Pigeon,
+  raceConfig: { startTime: string; distanceKm: number; weather: any }
+): PigeonRaceResult {
+  // Calculate base speed from stats (example formula)
+  const baseSpeed = pigeon.speed * 0.8 + pigeon.endurance * 0.2;
+  // Calculate duration (minutes)
+  const duration = Math.round((raceConfig.distanceKm / baseSpeed) * 60);
+  const events: PigeonRaceEvent[] = [];
+
+  // Example: Low endurance = mid-race slowdown
+  if (pigeon.endurance < 50) {
+    events.push({
+      t: Math.round(duration * 0.4),
+      effect: 'slowdown',
+      mod: 0.8,
+      reason: 'tired legs 💤',
+    });
+  }
+  // Example: High speed = late boost
+  if (pigeon.speed > 70) {
+    events.push({
+      t: duration - 100,
+      effect: 'boost',
+      mod: 1.2,
+      reason: 'final sprint! 🦅',
+    });
+  }
+  // Example: Weather impact (wind)
+  if (raceConfig.weather?.wind > 20 && pigeon.aerodynamics < 50) {
+    events.push({
+      t: Math.round(duration * 0.6),
+      effect: 'slowdown',
+      mod: 0.7,
+      reason: 'strong headwind 💨',
+    });
+  }
+  // Example: Navigation (sky_iq)
+  if (pigeon.sky_iq < 30 && Math.random() < 0.1) {
+    events.push({
+      t: Math.round(duration * 0.5),
+      effect: 'lost',
+      mod: 0,
+      reason: 'got lost in the hills 🏔️',
+    });
+    return {
+      pigeonId: pigeon.id,
+      startTime: raceConfig.startTime,
+      duration: null,
+      distanceKm: raceConfig.distanceKm,
+      baseSpeed,
+      events,
+      stats: pigeon,
+      didNotFinish: true,
+    };
+  }
+  // Example: Grit (morale) = chance for dramatic recovery
+  if (pigeon.morale > 80 && Math.random() < 0.05) {
+    events.push({
+      t: duration - 10,
+      effect: 'recovery',
+      mod: 1.5,
+      reason: 'miracle finish! ❤️',
+    });
+  }
+  // Sort events by time
+  events.sort((a, b) => a.t - b.t);
+  return {
+    pigeonId: pigeon.id,
+    startTime: raceConfig.startTime,
+    duration,
+    distanceKm: raceConfig.distanceKm,
+    baseSpeed,
+    events,
+    stats: pigeon,
+  };
+}
+
+/**
+ * Simulate race results using stat-driven event generation for all participants.
+ * @param raceId - The ID of the race
+ * @returns Array of PigeonRaceResult
+ */
+export async function simulateRaceWithEvents(raceId: string): Promise<PigeonRaceResult[]> {
+  // 1. Fetch race config
+  const { data: race, error: raceError } = await supabase
+    .from('races')
+    .select('*')
+    .eq('id', raceId)
+    .single();
+  if (raceError || !race) throw new Error('Race not found');
+  // 2. Fetch weather (stub for now, replace with real weather service)
+  const weather = { wind: 10 }; // TODO: integrate real weather
+  // 3. Fetch all participants and their pigeons
+  const { data: participants, error: participantsError } = await supabase
+    .from('race_participants')
+    .select('*, pigeons(*)')
+    .eq('race_id', raceId);
+  if (participantsError || !participants) throw new Error('No participants found');
+  // 4. Generate results for each pigeon
+  const results = participants
+    .map((participant: any) => {
+      const pigeon = participant.pigeons;
+      if (!pigeon) return null;
+      return generatePigeonRaceResult(pigeon, {
+        startTime: race.start_time,
+        distanceKm: race.distance,
+        weather,
+      });
+    })
+    .filter((r: PigeonRaceResult | null): r is PigeonRaceResult => r !== null);
+  return results;
 }
 
 /**
@@ -77,8 +199,51 @@ export const raceService = {
 
   /**
    * Join a race with a pigeon, validated with zod.
+   * Enforces that a pigeon can only participate in one race per day.
+   * @param raceId - The ID of the race to join
+   * @param pigeonId - The ID of the pigeon
+   * @param userId - The ID of the user
+   * @returns The RaceParticipant object
+   * @throws Error if the pigeon is already in a race on the same day
    */
   async joinRace(raceId: string, pigeonId: string, userId: string): Promise<RaceParticipant> {
+    // 1. Check if pigeon is already in a race on the same day
+    // Get the start_time of the target race
+    const { data: targetRace, error: targetRaceError } = await supabase
+      .from('races')
+      .select('start_time')
+      .eq('id', raceId)
+      .single();
+    if (targetRaceError || !targetRace) throw new Error('Target race not found');
+    const targetDate = new Date(targetRace.start_time);
+    const targetDay = targetDate.toISOString().slice(0, 10); // YYYY-MM-DD
+
+    // Find all races this pigeon is already signed up for on the same day
+    const { data: existingRaces, error: existingRacesError } = await supabase
+      .from('race_participants')
+      .select('race_id')
+      .eq('pigeon_id', pigeonId);
+    if (existingRacesError) throw new Error('Failed to check pigeon race participation');
+    if (existingRaces && existingRaces.length > 0) {
+      // Get start times for these races
+      const raceIds = existingRaces.map((r: { race_id: string }) => r.race_id);
+      if (raceIds.length > 0) {
+        const { data: racesOnSameDay, error: racesOnSameDayError } = await supabase
+          .from('races')
+          .select('id, start_time')
+          .in('id', raceIds);
+        if (racesOnSameDayError) throw new Error('Failed to check race dates for pigeon');
+        const alreadyParticipating = racesOnSameDay?.some((r: { start_time: string }) => {
+          const d = new Date(r.start_time);
+          return d.toISOString().slice(0, 10) === targetDay;
+        });
+        if (alreadyParticipating) {
+          throw new Error('This pigeon is already participating in a race on this day.');
+        }
+      }
+    }
+
+    // 2. Proceed with normal join logic
     const { data: user } = await supabase
       .from('users')
       .select('balance')

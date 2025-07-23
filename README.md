@@ -116,3 +116,55 @@ In `src/services/__tests__/foodService.test.ts`, we disable `@typescript-eslint/
 ---
 
 For more details, see code comments and the `/src/pages/AdminPage.tsx` file.
+
+# Race Replay System
+
+## Overview
+The Race Replay System provides a scalable, maintainable, and engaging way to visualize pigeon races, using stat-driven event scripts and efficient data flows. It is designed for performance, extensibility, and a great player experience.
+
+## Architecture
+- **Backend:**
+  - Stat-driven event generation (`generatePigeonRaceResult` in `src/services/raceService.ts`)
+  - Race simulation and results (`simulateRaceWithEvents` in `src/services/raceService.ts`)
+  - Data models and types (`src/types/race.ts`, `src/types/pigeon.ts`)
+- **Frontend:**
+  - Data fetching hook (`useRaceReplayData` in `src/hooks/useRaceReplayData.ts`)
+  - Canvas visualization (`RaceCanvas` in `src/components/RaceCanvas.tsx`)
+  - Leaderboard (`RaceLeaderboard` in `src/components/RaceLeaderboard.tsx`)
+  - Replay controls and integration (`RaceReplayPage` in `src/components/RaceReplayPage.tsx`)
+  - Top-level container (`RaceReplayContainer` in `src/pages/RaceReplayContainer.tsx`)
+
+## Features
+- Stat-driven, event-based race simulation (few events per pigeon, not 1000s of points)
+- Efficient, scalable data model (works for thousands of pigeons)
+- Canvas-based, animated race replay with smooth/stepwise toggle
+- Live leaderboard and user pigeon highlighting
+- Extensible for new stats, events, and features (e.g., food impact, commentary)
+- Fully tested and type-safe
+
+## Extensibility
+- Add new event types or stat logic in `generatePigeonRaceResult`
+- Add new UI features or visualizations in the React components
+- Easily integrate food, weather, or AI commentary in the future
+
+## Coding Standards
+- All code, tests, and documentation follow [PRO_CODING_GUIDELINES.md](./PRO_CODING_GUIDELINES.md)
+  - Strict typing, separation of concerns, accessibility, and test coverage
+  - All public functions and components are documented with JSDoc
+  - Tests are colocated and comprehensive
+
+## Main Files
+- `src/services/raceService.ts`
+- `src/types/race.ts`, `src/types/pigeon.ts`
+- `src/hooks/useRaceReplayData.ts`
+- `src/components/RaceCanvas.tsx`, `src/components/RaceLeaderboard.tsx`, `src/components/RaceReplayPage.tsx`
+- `src/pages/RaceReplayContainer.tsx`
+
+## How to Extend
+- To add new race events, update the event generation logic and types
+- To add new UI features, extend the React components and hooks
+- To add new data sources, update the data fetching hook
+
+---
+
+For more details, see the code and [PRO_CODING_GUIDELINES.md](./PRO_CODING_GUIDELINES.md).
