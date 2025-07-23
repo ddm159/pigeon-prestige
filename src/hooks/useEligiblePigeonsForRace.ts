@@ -2,6 +2,15 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../services/supabase';
 import type { Pigeon } from '../types/pigeon';
 
+interface RaceParticipant {
+  pigeon_id: string;
+  race_id: string;
+}
+interface Race {
+  id: string;
+  start_time: string;
+}
+
 /**
  * Custom hook to fetch pigeons eligible for a given race (not already in a race on the same day).
  * @param userId - The user's ID
@@ -45,37 +54,37 @@ export function useEligiblePigeonsForRace(userId: string, raceId: string) {
             .select('pigeon_id, race_id')
             .in('pigeon_id', pigeonIds);
           if (rpError) throw new Error('Failed to fetch race participation');
-          const raceIds = raceParticipants.map((rp: { race_id: string }) => rp.race_id);
+          const raceIds = (raceParticipants as RaceParticipant[]).map((rp) => rp.race_id);
           // 4. Get start times for these races
-          let racesOnSameDay: { id: string; start_time: string }[] = [];
+          let racesOnSameDay: Race[] = [];
           if (raceIds.length > 0) {
             const { data: races, error: racesError } = await supabase
               .from('races')
               .select('id, start_time')
               .in('id', raceIds);
             if (racesError) throw new Error('Failed to fetch race dates');
-            racesOnSameDay = races.filter((r: { start_time: string }) => {
+            racesOnSameDay = (races as Race[]).filter((r) => {
               const d = new Date(r.start_time);
               return d.toISOString().slice(0, 10) === targetDay;
             });
           }
           // 5. Mark pigeons as ineligible if they are in a race on the same day
-          ineligibleIds = raceParticipants
-            .filter((rp: { race_id: string }) =>
+          ineligibleIds = (raceParticipants as RaceParticipant[])
+            .filter((rp) =>
               racesOnSameDay.some((r) => r.id === rp.race_id)
             )
-            .map((rp: { pigeon_id: string }) => rp.pigeon_id);
+            .map((rp) => rp.pigeon_id);
         }
-        const eligible = pigeons.filter((p: Pigeon) => !ineligibleIds.includes(p.id));
-        const ineligible = pigeons.filter((p: Pigeon) => ineligibleIds.includes(p.id));
+        const eligible = (pigeons as Pigeon[]).filter((p) => !ineligibleIds.includes(p.id));
+        const ineligible = (pigeons as Pigeon[]).filter((p) => ineligibleIds.includes(p.id));
         if (isMounted) {
           setEligiblePigeons(eligible);
           setIneligiblePigeons(ineligible);
           setIsLoading(false);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (isMounted) {
-          setError(err.message || 'Unknown error');
+          setError((err as Error).message || 'Unknown error');
           setIsLoading(false);
         }
       }

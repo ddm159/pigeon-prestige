@@ -13,9 +13,16 @@ interface WeatherZone {
  * Custom hook to fetch all data needed for RaceReplayPage.
  * @param raceId - The race ID
  * @param userId - The current user's ID
- * @returns { pigeons, userPigeonIds, weatherZones, raceDuration, isLoading, error }
+ * @returns { pigeons, userPigeonIds, weatherZones, raceDuration, isLoading, error } where error is string | null
  */
-export function useRaceReplayData(raceId: string, userId: string) {
+export function useRaceReplayData(raceId: string, userId: string): {
+  pigeons: PigeonRaceResult[];
+  userPigeonIds: string[];
+  weatherZones: WeatherZone[];
+  raceDuration: number;
+  isLoading: boolean;
+  error: string | null;
+} {
   const [pigeons, setPigeons] = useState<PigeonRaceResult[]>([]);
   const [userPigeonIds, setUserPigeonIds] = useState<string[]>([]);
   const [weatherZones, setWeatherZones] = useState<WeatherZone[]>([]);
@@ -47,19 +54,19 @@ export function useRaceReplayData(raceId: string, userId: string) {
           { kmStart: 600, kmEnd: 650, type: 'heat', emoji: '☀️' },
         ];
         // 4. Calculate race duration (max duration from pigeons)
-        const maxDuration = results && results.length > 0
-          ? Math.max(...results.map((r: any) => r.duration || 0))
+        const maxDuration = results && (results as PigeonRaceResult[]).length > 0
+          ? Math.max(...(results as PigeonRaceResult[]).map((r) => r.duration || 0))
           : 0;
         if (isMounted) {
           setPigeons(results as PigeonRaceResult[]);
-          setUserPigeonIds(userPigeons.map((p: any) => p.id));
+          setUserPigeonIds((userPigeons as { id: string }[]).map((p) => p.id));
           setWeatherZones(stubZones);
           setRaceDuration(maxDuration);
           setIsLoading(false);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (isMounted) {
-          setError(err.message || 'Unknown error');
+          setError((err as Error).message || 'Unknown error');
           setIsLoading(false);
         }
       }

@@ -1,85 +1,96 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, waitFor } from '@testing-library/react';
+import { vi, type Mock } from 'vitest';
 import { useRaceReplayData } from '../useRaceReplayData';
 import { supabase } from '../../services/supabase';
+import type { PigeonRaceResult } from '../../types/race';
 
-jest.mock('../../services/supabase');
+vi.mock('../../services/supabase');
+
+type SupabaseQueryMock = {
+  select: () => SupabaseQueryMock;
+  eq: () => SupabaseQueryMock;
+  data?: unknown;
+  error?: unknown;
+};
 
 describe('useRaceReplayData', () => {
   const raceId = 'race-1';
   const userId = 'user-1';
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
+    supabase.from = vi.fn() as Mock;
   });
 
   it('returns loading state initially', () => {
-    (supabase.from as jest.Mock).mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-    });
+    (supabase.from as Mock).mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+    } as SupabaseQueryMock);
     const { result } = renderHook(() => useRaceReplayData(raceId, userId));
     expect(result.current.isLoading).toBe(true);
   });
 
   it('returns data when fetch succeeds', async () => {
-    (supabase.from as jest.Mock)
+    const mockResults: PigeonRaceResult[] = [
+      { pigeonId: 'p1', duration: 100, events: [], stats: {} as PigeonRaceResult['stats'], startTime: '', distanceKm: 1000, baseSpeed: 60 },
+      { pigeonId: 'p2', duration: 120, events: [], stats: {} as PigeonRaceResult['stats'], startTime: '', distanceKm: 1000, baseSpeed: 55 },
+    ];
+    (supabase.from as Mock)
       .mockReturnValueOnce({
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        // race_results
-        data: [
-          { pigeonId: 'p1', duration: 100, events: [], stats: {}, startTime: '', distanceKm: 1000, baseSpeed: 60 },
-          { pigeonId: 'p2', duration: 120, events: [], stats: {}, startTime: '', distanceKm: 1000, baseSpeed: 55 },
-        ],
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        data: mockResults,
         error: null,
-      })
+      } as SupabaseQueryMock)
       .mockReturnValueOnce({
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        // user pigeons
-        data: [{ id: 'p1' }],
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        data: [{ id: 'p1' } as { id: string }],
         error: null,
-      });
-    const { result, waitForNextUpdate } = renderHook(() => useRaceReplayData(raceId, userId));
-    await waitForNextUpdate();
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.pigeons.length).toBe(2);
-    expect(result.current.userPigeonIds).toEqual(['p1']);
+      } as SupabaseQueryMock);
+    const { result } = renderHook(() => useRaceReplayData(raceId, userId));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    const pigeons = result.current.pigeons as PigeonRaceResult[];
+    const userPigeonIds = result.current.userPigeonIds as string[];
+    expect(pigeons.length).toBe(2);
+    expect(userPigeonIds).toEqual(['p1']);
     expect(result.current.raceDuration).toBe(120);
     expect(result.current.error).toBeNull();
   });
 
   it('returns error if race results fetch fails', async () => {
-    (supabase.from as jest.Mock)
+    (supabase.from as Mock)
       .mockReturnValueOnce({
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
         data: null,
         error: { message: 'fail' },
-      });
-    const { result, waitForNextUpdate } = renderHook(() => useRaceReplayData(raceId, userId));
-    await waitForNextUpdate();
-    expect(result.current.isLoading).toBe(false);
+      } as SupabaseQueryMock);
+    const { result } = renderHook(() => useRaceReplayData(raceId, userId));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.error).toMatch(/fail/i);
   });
 
   it('returns error if user pigeons fetch fails', async () => {
-    (supabase.from as jest.Mock)
+    const mockResults: PigeonRaceResult[] = [
+      { pigeonId: 'p1', duration: 100, events: [], stats: {} as PigeonRaceResult['stats'], startTime: '', distanceKm: 1000, baseSpeed: 60 },
+    ];
+    (supabase.from as Mock)
       .mockReturnValueOnce({
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        data: [{ pigeonId: 'p1', duration: 100, events: [], stats: {}, startTime: '', distanceKm: 1000, baseSpeed: 60 }],
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        data: mockResults,
         error: null,
-      })
+      } as SupabaseQueryMock)
       .mockReturnValueOnce({
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
         data: null,
         error: { message: 'fail' },
-      });
-    const { result, waitForNextUpdate } = renderHook(() => useRaceReplayData(raceId, userId));
-    await waitForNextUpdate();
-    expect(result.current.isLoading).toBe(false);
+      } as SupabaseQueryMock);
+    const { result } = renderHook(() => useRaceReplayData(raceId, userId));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.error).toMatch(/fail/i);
   });
 }); 

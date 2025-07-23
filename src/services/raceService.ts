@@ -30,6 +30,11 @@ function isPigeonStats(obj: unknown): obj is PigeonStats {
   );
 }
 
+interface Weather {
+  wind: number;
+  // Add more properties as needed
+}
+
 /**
  * Generates a stat-driven event script and race result for a pigeon.
  * @param pigeon - The pigeon object
@@ -38,7 +43,7 @@ function isPigeonStats(obj: unknown): obj is PigeonStats {
  */
 export function generatePigeonRaceResult(
   pigeon: Pigeon,
-  raceConfig: { startTime: string; distanceKm: number; weather: any }
+  raceConfig: { startTime: string; distanceKm: number; weather: Weather }
 ): PigeonRaceResult {
   // Calculate base speed from stats (example formula)
   const baseSpeed = pigeon.speed * 0.8 + pigeon.endurance * 0.2;
@@ -136,8 +141,8 @@ export async function simulateRaceWithEvents(raceId: string): Promise<PigeonRace
     .eq('race_id', raceId);
   if (participantsError || !participants) throw new Error('No participants found');
   // 4. Generate results for each pigeon
-  const results = participants
-    .map((participant: any) => {
+  const results: PigeonRaceResult[] = (participants as Array<{ pigeons: Pigeon } & RaceParticipant>)
+    .map((participant) => {
       const pigeon = participant.pigeons;
       if (!pigeon) return null;
       return generatePigeonRaceResult(pigeon, {
@@ -146,7 +151,7 @@ export async function simulateRaceWithEvents(raceId: string): Promise<PigeonRace
         weather,
       });
     })
-    .filter((r: PigeonRaceResult | null): r is PigeonRaceResult => r !== null);
+    .filter((r): r is PigeonRaceResult => r !== null);
   return results;
 }
 

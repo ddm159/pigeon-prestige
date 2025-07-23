@@ -2,75 +2,81 @@ import { raceService } from '../raceService';
 import { supabase } from '../supabase';
 import { generatePigeonRaceResult } from '../raceService';
 import type { Pigeon } from '../../types/pigeon';
+import { vi } from 'vitest';
 
-jest.mock('../supabase');
-
-const mockRaceId1 = 'race-1';
-const mockRaceId2 = 'race-2';
-const mockPigeonId = 'pigeon-1';
-const mockUserId = 'user-1';
-
-const today = new Date().toISOString().slice(0, 10);
-const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+vi.mock('../supabase');
 
 describe('raceService.joinRace', () => {
+  const mockRaceId1 = 'race-1';
+  const mockRaceId2 = 'race-2';
+  const mockPigeonId = 'pigeon-1';
+  const mockUserId = 'user-1';
+
+  const today = new Date().toISOString().slice(0, 10);
+  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+  const mockParticipant = {
+    id: 'mock-participant-id',
+    race_id: mockRaceId1,
+    pigeon_id: mockPigeonId,
+    user_id: mockUserId,
+    finish_time: 0,
+    finish_position: 1,
+    prize_won: 0,
+    created_at: new Date().toISOString(),
+  };
+
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should allow a pigeon to join a race if not already in a race that day', async () => {
-    // Mock race with today as start_time
-    (supabase.from as jest.Mock).mockReturnValueOnce({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({ data: { start_time: today + 'T10:00:00Z' }, error: null })
+    (supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: { start_time: today + 'T10:00:00Z' }, error: null })
     });
-    // No existing races for this pigeon
-    (supabase.from as jest.Mock).mockReturnValueOnce({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
+    (supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
       data: [],
       error: null
     });
-    // User and race balance/fee
-    (supabase.from as jest.Mock).mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({ data: { balance: 100 }, error: null })
+    (supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: { balance: 100 }, error: null })
     });
-    (supabase.from as jest.Mock).mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({ data: { entry_fee: 10 }, error: null })
+    (supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: { entry_fee: 10 }, error: null })
     });
-    (supabase.from as jest.Mock).mockReturnValue({
-      update: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({ data: {}, error: null })
+    (supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      update: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: mockParticipant, error: null })
     });
     await expect(raceService.joinRace(mockRaceId1, mockPigeonId, mockUserId)).resolves.toBeDefined();
   });
 
   it('should not allow a pigeon to join two races on the same day', async () => {
-    // Mock target race (today)
-    (supabase.from as jest.Mock).mockReturnValueOnce({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({ data: { start_time: today + 'T10:00:00Z' }, error: null })
+    (supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: { start_time: today + 'T10:00:00Z' }, error: null })
     });
-    // Existing race_participant for this pigeon
-    (supabase.from as jest.Mock).mockReturnValueOnce({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
+    (supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
       data: [{ race_id: mockRaceId2 }],
       error: null
     });
-    // The other race is also today
-    (supabase.from as jest.Mock).mockReturnValueOnce({
-      select: jest.fn().mockReturnThis(),
-      in: jest.fn().mockReturnThis(),
+    (supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+      select: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
       data: [{ id: mockRaceId2, start_time: today + 'T15:00:00Z' }],
       error: null
     });
@@ -80,43 +86,39 @@ describe('raceService.joinRace', () => {
   });
 
   it('should allow a pigeon to join races on different days', async () => {
-    // Mock target race (tomorrow)
-    (supabase.from as jest.Mock).mockReturnValueOnce({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({ data: { start_time: tomorrow + 'T10:00:00Z' }, error: null })
+    (supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: { start_time: tomorrow + 'T10:00:00Z' }, error: null })
     });
-    // Existing race_participant for this pigeon
-    (supabase.from as jest.Mock).mockReturnValueOnce({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
+    (supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
       data: [{ race_id: mockRaceId2 }],
       error: null
     });
-    // The other race is today (not tomorrow)
-    (supabase.from as jest.Mock).mockReturnValueOnce({
-      select: jest.fn().mockReturnThis(),
-      in: jest.fn().mockReturnThis(),
+    (supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+      select: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
       data: [{ id: mockRaceId2, start_time: today + 'T15:00:00Z' }],
       error: null
     });
-    // User and race balance/fee
-    (supabase.from as jest.Mock).mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({ data: { balance: 100 }, error: null })
+    (supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: { balance: 100 }, error: null })
     });
-    (supabase.from as jest.Mock).mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({ data: { entry_fee: 10 }, error: null })
+    (supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: { entry_fee: 10 }, error: null })
     });
-    (supabase.from as jest.Mock).mockReturnValue({
-      update: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({ data: {}, error: null })
+    (supabase.from as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      update: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: mockParticipant, error: null })
     });
     await expect(raceService.joinRace(mockRaceId1, mockPigeonId, mockUserId)).resolves.toBeDefined();
   });
