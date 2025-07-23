@@ -1,11 +1,18 @@
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '../contexts/AuthContext';
+import { AuthProvider, AuthContext, type AuthContextType } from '../contexts/AuthContext';
 
-export const AllTheProviders = ({ children }: { children: React.ReactNode }) => (
+interface AllTheProvidersProps {
+  children: React.ReactNode;
+  authContextValue?: AuthContextType;
+}
+
+export const AllTheProviders = ({ children, authContextValue }: AllTheProvidersProps) => (
   <BrowserRouter>
-    <AuthProvider>
-      {children}
-    </AuthProvider>
+    {authContextValue ? (
+      <AuthContext.Provider value={authContextValue}>{children}</AuthContext.Provider>
+    ) : (
+      <AuthProvider>{children}</AuthProvider>
+    )}
   </BrowserRouter>
 ); 

@@ -1,16 +1,13 @@
-// Mock useAuth to provide a fake user
-vi.mock('../../contexts/useAuth', () => ({
-  useAuth: () => ({ user: { id: 'test-user', email: 'test@example.com' }, loading: false, gameUser: true })
-}));
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { customRender } from '../../test/renderHelpers';
+import type { AuthContextType } from '../../contexts/AuthContext';
+import type { User as GameUser } from '../../types/pigeon';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 import HomeBaseOnboardingPage from '../HomeBaseOnboardingPage';
 import * as homeBaseServiceModule from '../../services/homeBaseService';
 import * as geocodingServiceModule from '../../services/geocodingService';
-import { render } from '@testing-library/react';
 
 // Mock useNavigate
 const mockNavigate = vi.fn();
@@ -21,19 +18,62 @@ vi.mock('react-router-dom', (importOriginal: () => Promise<unknown>) => {
   }));
 });
 
+// Pro-level, type-safe Supabase User mock
+const mockUser: SupabaseUser = {
+  id: 'test-user',
+  aud: 'authenticated',
+  role: 'authenticated',
+  email: 'test@example.com',
+  email_confirmed_at: '2023-01-01T00:00:00Z',
+  phone: '',
+  phone_confirmed_at: '',
+  confirmed_at: '2023-01-01T00:00:00Z',
+  last_sign_in_at: '2023-01-01T00:00:00Z',
+  app_metadata: { provider: 'email', providers: ['email'] },
+  user_metadata: { username: 'testuser' },
+  identities: [],
+  created_at: '2023-01-01T00:00:00Z',
+  updated_at: '2023-01-01T00:00:00Z',
+  is_anonymous: false,
+};
+
+const mockGameUser: GameUser = {
+  id: 'test-user',
+  email: 'test@example.com',
+  username: 'testuser',
+  player_type: 'human',
+  balance: 1000,
+  total_pigeons: 0,
+  pigeon_cap: 10,
+  level: 1,
+  experience: 0,
+  created_at: '2023-01-01T00:00:00Z',
+  updated_at: '2023-01-01T00:00:00Z',
+};
+
+const authContextValue: AuthContextType = {
+  user: mockUser,
+  gameUser: mockGameUser,
+  loading: false,
+  signUp: vi.fn(),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+  refreshUser: vi.fn(),
+};
+
 describe('HomeBaseOnboardingPage', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('renders city and address fields', () => {
-    customRender(<HomeBaseOnboardingPage />);
+    customRender(<HomeBaseOnboardingPage />, { authContextValue });
     expect(screen.getByLabelText(/city/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/address/i)).toBeInTheDocument();
   });
 
   it('validates form and shows error if fields missing', async () => {
-    render(<HomeBaseOnboardingPage />);
+    customRender(<HomeBaseOnboardingPage />, { authContextValue });
     fireEvent.click(screen.getByRole('button', { name: /set home base/i }));
     await waitFor(() => {
       expect(screen.getByTestId('onboarding-error').textContent?.toLowerCase()).toContain('please select a city');
@@ -58,7 +98,24 @@ describe('HomeBaseOnboardingPage', () => {
         },
       },
     ]);
-    customRender(<HomeBaseOnboardingPage />);
+    vi.spyOn(geocodingServiceModule, 'getAddressDetails').mockResolvedValue({
+      geometry: { coordinates: [3.765, 51.105] },
+      properties: {
+        name: 'Kerkstraat 12',
+        street: 'Kerkstraat',
+        housenumber: '12',
+        city: 'Mendonk',
+        postcode: '9042',
+        country: 'Belgium',
+        suburb: '',
+        locality: '',
+        place_id: 'test-place-id',
+      },
+    });
+    customRender(<HomeBaseOnboardingPage />, { authContextValue });
+    await waitFor(() => {
+      expect(screen.getByLabelText(/city/i)).toBeInTheDocument();
+    }, { timeout: 2000 });
     fireEvent.change(screen.getByLabelText(/city/i), { target: { value: 'Mendonk' } });
     const addressInput = screen.getByLabelText(/address/i);
     await userEvent.type(addressInput, 'Kerkstraat 12');
@@ -98,7 +155,24 @@ describe('HomeBaseOnboardingPage', () => {
         },
       },
     ]);
-    customRender(<HomeBaseOnboardingPage />);
+    vi.spyOn(geocodingServiceModule, 'getAddressDetails').mockResolvedValue({
+      geometry: { coordinates: [3.765, 51.105] },
+      properties: {
+        name: 'Kerkstraat 12',
+        street: 'Kerkstraat',
+        housenumber: '12',
+        city: 'Mendonk',
+        postcode: '9042',
+        country: 'Belgium',
+        suburb: '',
+        locality: '',
+        place_id: 'test-place-id',
+      },
+    });
+    customRender(<HomeBaseOnboardingPage />, { authContextValue });
+    await waitFor(() => {
+      expect(screen.getByLabelText(/city/i)).toBeInTheDocument();
+    }, { timeout: 2000 });
     fireEvent.change(screen.getByLabelText(/city/i), { target: { value: 'Mendonk' } });
     const addressInput = screen.getByLabelText(/address/i);
     await userEvent.type(addressInput, 'Kerkstraat 12');
@@ -131,7 +205,24 @@ describe('HomeBaseOnboardingPage', () => {
         },
       },
     ]);
-    customRender(<HomeBaseOnboardingPage />);
+    vi.spyOn(geocodingServiceModule, 'getAddressDetails').mockResolvedValue({
+      geometry: { coordinates: [3.765, 51.105] },
+      properties: {
+        name: 'Kerkstraat 12',
+        street: 'Kerkstraat',
+        housenumber: '12',
+        city: 'Mendonk',
+        postcode: '9042',
+        country: 'Belgium',
+        suburb: '',
+        locality: '',
+        place_id: 'test-place-id',
+      },
+    });
+    customRender(<HomeBaseOnboardingPage />, { authContextValue });
+    await waitFor(() => {
+      expect(screen.getByLabelText(/city/i)).toBeInTheDocument();
+    }, { timeout: 2000 });
     fireEvent.change(screen.getByLabelText(/city/i), { target: { value: 'Mendonk' } });
     const addressInput = screen.getByLabelText(/address/i);
     await userEvent.type(addressInput, 'Kerkstraat 12');
