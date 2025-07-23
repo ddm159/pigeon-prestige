@@ -5,6 +5,61 @@
 ## Overview
 Pigeon Prestige is a professional multiplayer pigeon racing game built with Vite, React, TypeScript, and Supabase. The game features detailed pigeon stats, breeding, racing, and a robust admin system for managing game data.
 
+## 🏠 Home Base Onboarding Flow
+
+Players must select a permanent home base during onboarding. The flow is:
+
+1. **City Selection:**
+   - Players choose from Mendonk, Sint-Kruis-Winkel, or Wachtebeke (sub-municipalities of Gent, or Wachtebeke proper).
+2. **Address Autocomplete:**
+   - Players type their street and house number in an address field.
+   - The field uses Photon (OpenStreetMap-based) for real-time address suggestions, filtered to the selected city/locality.
+3. **Map Preview:**
+   - A Leaflet map shows a marker at the selected address.
+   - The marker updates as the player changes their selection.
+4. **Confirmation:**
+   - Players click “Set Home Base” to save their address and coordinates.
+   - The home base is saved to Supabase and cannot be changed.
+5. **Integration:**
+   - The homepage and race maps show the player’s home base marker at the exact coordinates.
+
+### Technical Details
+- **Photon API** is used for address autocomplete (see `src/services/geocodingService.ts`).
+- **Leaflet** is used for map rendering and marker placement.
+- **Supabase** stores the home base address and coordinates (see `src/services/homeBaseService.ts`).
+- **Tests** cover the full onboarding flow, including validation and error handling.
+
+### User Experience
+- The onboarding is mobile-friendly and accessible.
+- Error messages are shown if the city or address is missing.
+- The home base is immutable after selection.
+
+---
+
+## Homepage Map
+- The homepage features a Leaflet map of Western Europe.
+- **Features:**
+  - All race locations are shown as markers
+  - The player’s home base is shown as a special marker
+  - Map is interactive and ready for future features (clustering, tooltips, etc.)
+
+## Supabase Schema: home_bases
+| column_name | data_type           | nullable | description |
+|-------------|---------------------|----------|-------------|
+| user_id     | uuid                | NO       | PK, references auth.users(id) |
+| city        | text                | NO       | Must be one of allowed cities |
+| street      | text                | NO       |             |
+| number      | text                | NO       |             |
+| lat         | double precision    | NO       |             |
+| lng         | double precision    | NO       |             |
+| created_at  | timestamptz         | NO       | Default now()|
+
+- **Constraints:**
+  - PK: user_id
+  - UNIQUE: user_id
+  - FK: user_id → auth.users(id) ON DELETE CASCADE
+  - CHECK: city in ('Mendonk', 'Sint-Kruis-Winkel', 'Wachtebeke')
+
 ## Admin Page
 
 ### Access
@@ -37,6 +92,22 @@ Pigeon Prestige is a professional multiplayer pigeon racing game built with Vite
 - [ ] Connect admin page to backend for persistent name list and settings management.
 - [ ] Implement real admin authentication/authorization.
 - [ ] Add controls for game parameters as new features are built.
+
+## 🧪 Resetting Your Home Base for Testing
+
+If you need to test the onboarding flow again, you can reset your home base in Supabase:
+
+1. **Find your user ID** (from the Supabase users table or your app session).
+2. **Run this SQL in the Supabase SQL editor:**
+
+```sql
+DELETE FROM home_bases WHERE user_id = 'your-user-id';
+```
+
+- Replace `'your-user-id'` with your actual user ID.
+- This will delete your home base, allowing you to go through onboarding again.
+
+---
 
 ## Test Mock Linter Override
 

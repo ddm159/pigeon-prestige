@@ -36,9 +36,11 @@ const CompetitionPage: React.FC = () => {
     season?.id || ''
   );
 
-  const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
   const userIds = useMemo(
-    () => standings.map((row) => row.user_id).filter(id => uuidRegex.test(id)),
+    () => {
+      const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+      return standings.map((row) => row.user_id).filter(id => uuidRegex.test(id));
+    },
     [standings]
   );
   const { usernames, loading: usernamesLoading } = useUsernames(userIds);

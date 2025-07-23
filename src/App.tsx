@@ -15,24 +15,18 @@ import ComponentLibrary from './components/ComponentLibrary';
 import FoodShop from './components/FoodShop';
 import FeedingCenterPage from './pages/FeedingCenterPage';
 import CompetitionPage from './pages/CompetitionPage';
+import HomeBaseOnboardingPage from './pages/HomeBaseOnboardingPage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
 
-  console.log('ProtectedRoute - user:', !!user, 'loading:', loading, 'user object:', user);
-
   if (loading) {
-    console.log('ProtectedRoute - showing loading spinner');
     return <LoadingSpinner />;
   }
-
   if (!user) {
-    console.log('ProtectedRoute - redirecting to login (no user)');
     return <Navigate to="/login" replace />;
   }
-
-  console.log('ProtectedRoute - rendering children');
   return <>{children}</>;
 };
 
@@ -52,6 +46,7 @@ const AppContent = () => {
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/onboarding/home-base" element={<HomeBaseOnboardingPage />} />
       
       {/* Protected Routes */}
       <Route

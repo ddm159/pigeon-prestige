@@ -1,7 +1,19 @@
 import React from 'react';
-import { Trophy, Award, Target, Users } from 'lucide-react';
+import { Trophy, Award, Target, Users, AlertTriangle } from 'lucide-react';
+import { useAuth } from '../contexts/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { useHasHomeBase } from '../hooks/useHasHomeBase';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const RacingPage: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const hasHomeBase = useHasHomeBase(user);
+
+  if (hasHomeBase === null) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-yellow-600 to-yellow-700 rounded-lg p-6 text-white">
@@ -10,6 +22,22 @@ const RacingPage: React.FC = () => {
           Compete against other players and prove your pigeons are the fastest!
         </p>
       </div>
+
+      {!hasHomeBase && (
+        <div className="card bg-warning-50 border border-warning-200 p-6 mb-6 flex flex-col items-center">
+          <AlertTriangle className="h-8 w-8 text-warning-600 mb-2" />
+          <h3 className="text-lg font-semibold text-warning-800 mb-2">Home Base Required</h3>
+          <p className="text-warning-700 mb-4 text-center">
+            You must set your home base before you can subscribe to a race. Your home base determines your race results and is required for participation.
+          </p>
+          <button
+            className="btn-primary"
+            onClick={() => navigate('/onboarding/home-base')}
+          >
+            Set Home Base
+          </button>
+        </div>
+      )}
 
       <div className="card">
         <div className="text-center py-12">

@@ -42,7 +42,7 @@ export function useCompetitionStandings(
     return () => {
       isMounted = false;
     };
-  }, [leagueType, category, seasonId]);
+  }, [leagueType, category, seasonId, standings]);
 
   return { standings, loading, error };
 } 
