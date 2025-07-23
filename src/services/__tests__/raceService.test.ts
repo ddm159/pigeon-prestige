@@ -221,14 +221,13 @@ describe('generatePigeonRaceResult', () => {
   });
 
   it('can generate a lost event for low sky_iq', () => {
-    // Run multiple times due to randomness
+    // Make the test deterministic by mocking Math.random
+    const originalRandom = Math.random;
+    Math.random = () => 0.05; // Always trigger lost event
     const pigeon = { ...basePigeon, sky_iq: 10 };
-    let lost = false;
-    for (let i = 0; i < 20; i++) {
-      const result = generatePigeonRaceResult(pigeon, raceConfig);
-      if (result.didNotFinish) lost = true;
-    }
-    expect(lost).toBe(true);
+    const result = generatePigeonRaceResult(pigeon, raceConfig);
+    expect(result.didNotFinish).toBe(true);
+    Math.random = originalRandom; // Restore
   });
 
   it('is extensible for new events and stats', () => {
