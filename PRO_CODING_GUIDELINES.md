@@ -118,3 +118,144 @@ ch# 🛡️ Professional Coding Guidelines for Cursor Projects
 ---
 
 **These guidelines are to be followed for the entire game project. All code, tests, and documentation must adhere to these standards to ensure maintainability, scalability, and a green state on GitHub.** 
+
+---
+
+# 🟢 Step-by-Step: Automate Game Time with Supabase Edge Function
+
+## **1. Install Supabase CLI (if you haven’t already)**
+```sh
+npm install -g supabase
+```
+
+---
+
+## **2. Initialize Supabase in Your Project (if you haven’t already)**
+```sh
+supabase init
+```
+- This creates a `supabase/` folder in your project.
+
+---
+
+## **3. Create the Edge Function**
+```sh
+supabase functions new advance-game-time
+```
+- This creates: `supabase/functions/advance-game-time/index.ts`
+
+---
+
+## **4. Replace the Function Code**
+
+Open `supabase/functions/advance-game-time/index.ts` and **replace all contents** with:
+
+```ts
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+serve(async (req) => {
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+
+  // Get current state
+  const { data: state, error } = await supabase
+    .from("game_time_state")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error || !state) {
+    return new Response("Failed to get game time state", { status: 500 });
+  }
+
+  // Advance by one day
+  const newDate = new Date(state.current_game_date);
+  newDate.setDate(newDate.getDate() + 1);
+
+  // Update state
+  await supabase
+    .from("game_time_state")
+    .update({
+      current_game_date: newDate.toISOString().split("T")[0],
+      last_update_time: new Date().toISOString(),
+      next_update_time: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(),
+      update_count: state.update_count + 1,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", state.id);
+
+  // Log the update
+  await supabase.from("game_time_log").insert({
+    game_date: newDate.toISOString().split("T")[0],
+    update_time: new Date().toISOString(),
+    update_type: "scheduled",
+    description: "Automatic game time advancement",
+  });
+
+  return new Response("Game time advanced", { status: 200 });
+});
+```
+
+---
+
+## **5. Deploy the Edge Function**
+```sh
+supabase functions deploy advance-game-time
+```
+- This uploads your function to Supabase.
+- After deploying, you’ll see a URL like:  
+  `https://<project-ref>.functions.supabase.co/advance-game-time`
+
+---
+
+## **6. Get Your Service Role Key**
+- Go to your Supabase dashboard → Project Settings → API.
+- Copy the `service_role` key (keep it secret!).
+
+---
+
+## **7. Test the Function Manually**
+
+Replace `<project-ref>` and `<SERVICE_ROLE_KEY>` with your values:
+
+```sh
+curl -X POST "https://<project-ref>.functions.supabase.co/advance-game-time" \
+  -H "Authorization: Bearer <SERVICE_ROLE_KEY>"
+```
+- You should see: `Game time advanced`
+- Check your Supabase tables to confirm the date advanced.
+
+---
+
+## **8. Schedule the Function (Every 6 Hours or Weekly)**
+
+### **A. Go to [cron-job.org](https://cron-job.org/) and create a free account.**
+### **B. Create a new CRON job:**
+- **URL:** Your function’s URL (from step 5)
+- **Method:** POST
+- **Headers:**  
+  - `Authorization: Bearer <SERVICE_ROLE_KEY>`
+- **Schedule:**  
+  - Every 6 hours: `0 */6 * * *`
+  - Every Sunday at 20:00: `0 20 * * 0`
+
+---
+
+## **9. Done!**
+
+- Your game time will now advance automatically.
+- You can check the logs in Supabase to confirm.
+
+---
+
+## **If you get stuck:**
+- Copy any error or question here and I’ll walk you through the fix.
+- If you want, I can generate a ready-to-paste CRON job config or help with any step.
+
+---
+
+**You’re almost there! Just follow these steps and your game time will be fully automated.** 

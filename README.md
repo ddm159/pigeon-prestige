@@ -168,3 +168,78 @@ The Race Replay System provides a scalable, maintainable, and engaging way to vi
 ---
 
 For more details, see the code and [PRO_CODING_GUIDELINES.md](./PRO_CODING_GUIDELINES.md).
+
+## 🏁 Why Simulate Race Progress Client-Side When Outcomes Are Pre-Scripted?
+
+**The race script (generated at race start) stores the outcome and key events for each pigeon.**
+- This ensures scalability, fairness, and minimal storage (especially with thousands of pigeons per race).
+
+**However, client-side simulation is still essential for:**
+
+- **Live Standings & Animation:**
+  - Players want to see real-time progress, who is leading, and how far their pigeons are.
+  - The simulation interpolates each pigeon's position, speed, and state at any moment, based on the script and elapsed time.
+- **Dynamic Commentary & Drama:**
+  - The UI can generate live commentary and highlight dramatic moments as events are reached in the script.
+- **Replay & Consistency:**
+  - The same script can be replayed at any time, always producing the same race visualization.
+  - All clients see the same race progress, since it's deterministic from the script and current time.
+- **Scalability:**
+  - The server only stores the script and outcome, not every position update.
+  - All "live" experience is generated on the client, using the script as the source of truth.
+
+**In short:**
+- The script is the “movie script.”
+- The simulation is the “movie player.”
+- You need both for a scalable, engaging, and visually rich racing game.
+
+## 🧠 AI Player System
+
+### Overview
+- AI users are automatically created to fill empty slots in leagues during season transitions.
+- Each AI user is assigned a unique name and email, and is flagged with `player_type: 'ai'`.
+- For every new AI user, 10 pigeons are generated with randomized stats, gender, and age.
+
+### League Filling Logic
+- At the end of each season, inactive human players are replaced by AI.
+- No league exceeds the player cap (20).
+- AI users are assigned to leagues and included in all race logic.
+
+### Testing
+- Integration tests verify that AI users and pigeons are created and assigned as expected.
+- To run the test:
+  ```sh
+  npx vitest run src/services/__tests__/competitionService.integration.test.ts
+  ```
+- The test asserts:
+  - AI user creation
+  - League assignment upserts
+  - AI pigeon creation
+  - Pigeon retirement for inactive users
+
+### Extending the System
+- To adjust the number or quality of AI pigeons, edit the logic in `competitionService.ts` (`fillWithAI`).
+- To add smarter AI, implement additional logic for AI race participation and decision-making.
+
+## Development & Testing Tools
+
+### Dev-Only Race Time Slider
+
+When running the app in development mode, the Racing page includes a **race time slider** at the top of the race card. This slider allows you to manually set the current race time (in seconds) for the simulation. As you move the slider, the standings table updates in real time to reflect the state of the race at that moment.
+
+- **Purpose:**
+  - Test and demo the race simulation and standings logic at any point in a race.
+  - Scrub through the race timeline to see how events and outcomes affect standings.
+  - Useful for development, debugging, and QA before real races are live.
+
+- **How to use:**
+  1. Start the app in development mode (`npm run dev`).
+  2. Go to the Racing page.
+  3. Use the slider labeled "Race Time (seconds)" to set the simulated race time.
+  4. Observe the standings table update instantly.
+
+- **Note:**
+  - The slider is only visible in development mode and does not appear in production builds.
+  - The simulation currently uses stub/mock data; integrate real data as it becomes available.
+
+---

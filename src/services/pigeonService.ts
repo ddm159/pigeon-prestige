@@ -119,13 +119,18 @@ export const pigeonService = {
   async createStartingPigeons(userId: string): Promise<Pigeon[]> {
     console.log('🕊️ Creating starting pigeons for user:', userId);
     const pigeons: Omit<Pigeon, 'id' | 'created_at' | 'updated_at'>[] = [];
+    // 3 males, 1 year old
     for (let i = 0; i < 3; i++) {
-      const pigeon = this.generateRandomPigeon(userId, 'male', 1, 0, 0);
-      pigeons.push(pigeon);
+      pigeons.push(this.generateRandomPigeon(userId, 'male', 1, 0, 0));
     }
+    // 3 females, 1 year old
+    for (let i = 0; i < 3; i++) {
+      pigeons.push(this.generateRandomPigeon(userId, 'female', 1, 0, 0));
+    }
+    // 2 baby pigeons, gender random, 0 days old
     for (let i = 0; i < 2; i++) {
-      const pigeon = this.generateRandomPigeon(userId, 'female', 1, 0, 0);
-      pigeons.push(pigeon);
+      const gender = Math.random() < 0.5 ? 'male' : 'female';
+      pigeons.push(this.generateRandomPigeon(userId, gender, 0, 0, 0));
     }
     const { data, error } = await supabase
       .from('pigeons')

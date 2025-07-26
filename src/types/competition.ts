@@ -46,7 +46,7 @@ export interface Standing {
   league_id: string;
   season_id: string;
   points: number;
-  position: number | null;
+  rank: number | null;
   tiebreaker_points: number;
   updated_at: string;
 }

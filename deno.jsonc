@@ -1,0 +1,6 @@
+{
+  // Enable Deno for this workspace
+  "enable": true,
+  // Optionally, you can add importMap if you use one
+  // "importMap": "./import_map.json"
+} 

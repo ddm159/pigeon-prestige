@@ -43,7 +43,7 @@ export const standingSchema = z.object({
   league_id: z.string(),
   season_id: z.string(),
   points: z.number(),
-  position: z.number().nullable(),
+  rank: z.number().nullable(),
   tiebreaker_points: z.number(),
   updated_at: z.string(),
 });

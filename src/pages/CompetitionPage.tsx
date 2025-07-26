@@ -91,7 +91,7 @@ const CompetitionPage: React.FC = () => {
         <table aria-label="League standings">
           <thead>
             <tr>
-              <th>Position</th>
+              <th>Rank</th>
               <th>Player</th>
               <th>Points</th>
               <th>Tiebreaker</th>
@@ -104,7 +104,7 @@ const CompetitionPage: React.FC = () => {
                 <tr key={row.user_id}
                   style={isCurrentUser ? { background: '#e0f7fa', fontWeight: 'bold', color: '#00796b' } : undefined}
                 >
-                  <td>{row.position ?? '-'}</td>
+                  <td>{row.rank ?? '-'}</td>
                   <td>{usernamesLoading ? '...' : usernames[row.user_id] || row.user_id}</td>
                   <td>{row.points}</td>
                   <td>{row.tiebreaker_points}</td>

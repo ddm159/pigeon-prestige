@@ -9,6 +9,7 @@ import {
   type Standing,
   type AIName,
 } from '../types/competitionSchema';
+import { pigeonService } from './pigeonService';
 
 /**
  * Service for managing competitions, leagues, assignments, standings, and AI players.
@@ -129,7 +130,7 @@ export const competitionService = {
       .select('*')
       .eq('league_id', leagueId)
       .eq('season_id', seasonId)
-      .order('position', { ascending: true });
+      .order('rank', { ascending: true });
     if (error) throw error;
     return standingSchema.array().parse(data);
   },
@@ -296,7 +297,21 @@ export const competitionService = {
           is_ai: true,
           last_active: new Date().toISOString(),
         });
-        // TODO: Create starting pigeons for AI user
+        // Create starting pigeons for AI user
+        for (let j = 0; j < 10; j++) {
+          const gender = Math.random() < 0.5 ? 'male' : 'female';
+          const years = Math.floor(Math.random() * 3) + 1; // 1-3 years
+          const months = Math.floor(Math.random() * 12);
+          const days = Math.floor(Math.random() * 30);
+          const pigeon = pigeonService.generateRandomPigeon(
+            aiUser.id,
+            gender,
+            years,
+            months,
+            days
+          );
+          await supabase.from('pigeons').insert(pigeon);
+        }
       }
     };
     // Pro

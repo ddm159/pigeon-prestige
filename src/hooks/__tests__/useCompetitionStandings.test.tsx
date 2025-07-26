@@ -8,9 +8,27 @@ describe('useCompetitionStandings', () => {
     { id: 'l1', name: 'Regional 2A', type: '2a', is_active: true, created_at: '' },
     { id: 'l2', name: 'Pro', type: 'pro', is_active: true, created_at: '' },
   ];
-  const mockStandings: Array<{ user_id: string; league_id: string; season_id: string; points: number; position: number; tiebreaker_points: number; updated_at: string }> = [
-    { user_id: 'u1', league_id: 'l1', season_id: 's1', points: 10, position: 1, tiebreaker_points: 0, updated_at: '' },
-    { user_id: 'u2', league_id: 'l1', season_id: 's1', points: 8, position: 2, tiebreaker_points: 0, updated_at: '' },
+  const mockStandings = [
+    {
+      user_id: 'user1',
+      league_id: 'league1',
+      season_id: 'season1',
+      points: 10,
+      rank: 1,
+      position: 1,
+      tiebreaker_points: 0,
+      updated_at: '2023-01-01T00:00:00Z',
+    },
+    {
+      user_id: 'user2',
+      league_id: 'league1',
+      season_id: 'season1',
+      points: 8,
+      rank: 2,
+      position: 2,
+      tiebreaker_points: 0,
+      updated_at: '2023-01-01T00:00:00Z',
+    },
   ];
 
   beforeEach(() => {

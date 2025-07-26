@@ -16,6 +16,8 @@ import FoodShop from './components/FoodShop';
 import FeedingCenterPage from './pages/FeedingCenterPage';
 import CompetitionPage from './pages/CompetitionPage';
 import HomeBaseOnboardingPage from './pages/HomeBaseOnboardingPage';
+import RaceTestPage from './pages/RaceTestPage';
+import AdminPigeonTool from './pages/AdminPigeonTool';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -150,11 +152,31 @@ const AppContent = () => {
         }
       />
       <Route
+        path="/admin-pigeon-tool"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <AdminPigeonTool />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/component-library"
         element={
           <ProtectedRoute>
             <Layout>
               <ComponentLibrary />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/race-test"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <RaceTestPage />
             </Layout>
           </ProtectedRoute>
         }
