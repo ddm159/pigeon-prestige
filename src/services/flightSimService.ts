@@ -140,7 +140,13 @@ export function getPigeonFlightStateAtTime(
   const groupOffset = (groupSeed % 3) * 0.001; // Smaller offset
   const groupWobble = Math.sin(actualFlightTime * 0.2) * 0.002; // Slower wobble
   const individualSeed = parseInt(pigeonScript.pigeonId) % 100;
-  const individualWobble = Math.sin(actualFlightTime * 0.3 + individualSeed) * 0.001;
+  
+  // Stat-driven wobble - make it more pronounced for different stats
+  const focus = stats.focus || 50;
+  const navigation = stats.navigation || 50;
+  const skyIQ = stats.skyIQ || 50;
+  const statWobbleFactor = (focus + navigation + skyIQ) / 150; // 0.33 to 2.0 range
+  const individualWobble = Math.sin(actualFlightTime * 0.3 + individualSeed) * 0.001 * statWobbleFactor;
   const individualOffset = (individualSeed - 50) * 0.00005; // Smaller offset
   
   let lat = baseLat + groupOffset + groupWobble + individualWobble + individualOffset;
@@ -153,20 +159,46 @@ export function getPigeonFlightStateAtTime(
     lng = baseLng;
   }
 
-  // Determine state based on progress
+  // Handle events to determine state
   let state: PigeonFlightState['state'] = 'normal';
+  let groupIdOverride: string | undefined;
+  
+  // Check for events that affect state
+  const events = (pigeonScript.events || []).slice().sort((a, b) => a.t - b.t);
+  for (const event of events) {
+    if (event.t <= t) {
+      if (event.type === 'lost') {
+        state = 'lost';
+        return { position: { lat: NaN, lng: NaN }, groupId: undefined, state };
+      } else if (event.type === 'death') {
+        state = 'dead';
+        return { position: { lat: NaN, lng: NaN }, groupId: undefined, state };
+      } else if (event.type === 'strayed') {
+        state = 'strayed';
+        // Continue with current position but mark as strayed
+      } else if (event.type === 'overshot') {
+        state = 'overshot';
+        // Continue with current position but mark as overshot
+      } else if (event.type === 'joined_group') {
+        groupIdOverride = (event as any).groupId;
+      } else if (event.type === 'left_group') {
+        groupIdOverride = undefined;
+      }
+    }
+  }
+  
   if (progress >= 1) {
     state = 'finished';
   }
 
   // Debug output
   if (typeof window !== 'undefined' && window.console && t % 20 < 1) {
-    console.log(`Final - Pigeon ${pigeonScript.pigeonId} t=${t.toFixed(1)}s groupId=${groupId} progress=${progress.toFixed(3)} position=(${lat.toFixed(6)}, ${lng.toFixed(6)}) baseSpeed=${baseSpeed.toFixed(2)} actualFlightTime=${actualFlightTime.toFixed(2)} distanceTravelled=${distanceTravelled.toFixed(2)} totalDistance=${totalDistance.toFixed(2)}`);
+    console.log(`Final - Pigeon ${pigeonScript.pigeonId} t=${t.toFixed(1)}s groupId=${groupIdOverride || groupId} progress=${progress.toFixed(3)} position=(${lat.toFixed(6)}, ${lng.toFixed(6)}) baseSpeed=${baseSpeed.toFixed(2)} actualFlightTime=${actualFlightTime.toFixed(2)} distanceTravelled=${distanceTravelled.toFixed(2)} totalDistance=${totalDistance.toFixed(2)}`);
   }
 
   return {
     position: { lat, lng },
-    groupId,
+    groupId: groupIdOverride || groupId,
     state
   };
 }

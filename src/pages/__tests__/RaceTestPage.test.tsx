@@ -10,8 +10,8 @@ describe('RaceTestPage toggle logic', () => {
     // Should show the Start Race button and the Show Standings toggle
     expect(screen.getByText('Start Race')).toBeInTheDocument();
     expect(screen.getByText('Show Standings')).toBeInTheDocument();
-    // Should show the race view placeholder
-    expect(screen.getByText(/Click "Start Race" to begin the simulation/i)).toBeInTheDocument();
+    // Should show the race view by default (map container)
+    expect(screen.getByText('Pigeon Racing Test Page')).toBeInTheDocument();
     // Switch to standings
     fireEvent.click(screen.getByText('Show Standings'));
     expect(screen.getByText('Show Race')).toBeInTheDocument();
@@ -23,7 +23,7 @@ describe('RaceTestPage toggle logic', () => {
     render(<RaceTestPage />);
     fireEvent.click(screen.getByText('Show Standings'));
     fireEvent.click(screen.getByText('Show Race'));
-    // Should show the race view placeholder again
-    expect(screen.getByText(/Click "Start Race" to begin the simulation/i)).toBeInTheDocument();
+    // Should show the race view again (map container)
+    expect(screen.getByText('Pigeon Racing Test Page')).toBeInTheDocument();
   });
 }); 

@@ -203,8 +203,8 @@ describe('getPigeonFlightStateAtTime', () => {
       events: [],
       outcome: 'dnf',
     };
-    const raceConfig1 = { start: { lat: 0, lng: 0 }, homeBases: [{ lat: 1, lng: 1 }], totalDistance: 1000, weatherZone: { type: 'wind', severity: 0.5, area: [{ lat: 0.5, lng: 0.5 }] } };
-    const raceConfig2 = { start: { lat: 0, lng: 0 }, homeBases: [{ lat: 2, lng: 2 }], totalDistance: 1000, weatherZone: { type: 'wind', severity: 0.5, area: [{ lat: 0.5, lng: 0.5 }] } };
+    const raceConfig1 = { start: { lat: 0, lng: 0 }, homeBases: [{ lat: 10, lng: 10 }], totalDistance: 1000, weatherZone: { type: 'wind', severity: 0.5, area: [{ lat: 0.5, lng: 0.5 }] } };
+    const raceConfig2 = { start: { lat: 0, lng: 0 }, homeBases: [{ lat: 20, lng: 20 }], totalDistance: 1000, weatherZone: { type: 'wind', severity: 0.5, area: [{ lat: 0.5, lng: 0.5 }] } };
     const state1 = getPigeonFlightStateAtTime(script, baseStats, 500, raceConfig1);
     const state2 = getPigeonFlightStateAtTime(script, baseStats, 500, raceConfig2);
     expect(state1.position.lat).not.toBeCloseTo(state2.position.lat);
