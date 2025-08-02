@@ -5,22 +5,25 @@ import type { PigeonStanding, PigeonRaceScript, PigeonStats, RaceConfig } from '
 import { calculatePigeonStandings, getPigeonFlightStateAtTime } from '../services/flightSimService';
 
 // ---- Types ----
-type LatLng = [number, number];
+// Unused type - keeping for potential future use
+// type LatLng = [number, number];
 
-type WeatherZone = {
-  type: 'storm' | 'wind';
-  area: LatLng[];
-  effect: {
-    speedFactor?: number;
-    strayChance?: number;
-    severity?: number;
-    direction?: number;
-    strength?: number;
-  };
-};
+// Unused type - keeping for potential future use
+// type WeatherZone = {
+//   type: 'storm' | 'wind';
+//   area: LatLng[];
+//   effect: {
+//     speedFactor?: number;
+//     strayChance?: number;
+//     severity?: number;
+//     direction?: number;
+//     strength?: number;
+//   };
+// };
 
 // ---- Mock Data ----
-const LIMOGES: LatLng = [45.8336, 1.2611];
+// Unused constant - keeping for potential future use
+// const LIMOGES: LatLng = [45.8336, 1.2611];
 const HOME_BASES: { name: string; coords: { lat: number; lng: number }; color: string; isUser?: boolean }[] = [
   { name: 'Mendonk', coords: { lat: 51.105, lng: 3.765 }, color: '#e63946', isUser: true },
   { name: 'Wachtebeke', coords: { lat: 51.150, lng: 3.850 }, color: '#457b9d' },
@@ -50,7 +53,7 @@ const MOCK_RACE_SCRIPTS: (PigeonRaceScript & { markerColor?: string; homeBaseInd
 }));
 
 // Generate random stats for each pigeon (1-100 range for most stats)
-const generateRandomStats = (pigeonId: number): PigeonStats => ({
+const generateRandomStats = (): PigeonStats => ({
   // Core Stats (1-100 range)
   speed: Math.floor(Math.random() * 30) + 15, // 15-44 m/s (54-158 km/h) for realistic racing
   focus: Math.floor(Math.random() * 100) + 1,
@@ -66,7 +69,7 @@ const generateRandomStats = (pigeonId: number): PigeonStats => ({
 
 const MOCK_STATS: Record<string, PigeonStats> = {};
 PIGEON_IDS.forEach((id) => {
-  MOCK_STATS[id] = generateRandomStats(parseInt(id));
+  MOCK_STATS[id] = generateRandomStats();
 });
 
 console.log(`STRESS TEST: Generated ${PIGEON_IDS.length} pigeons with random core stats (1-100 range) for racing simulation`);

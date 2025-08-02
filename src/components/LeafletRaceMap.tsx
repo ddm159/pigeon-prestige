@@ -51,6 +51,7 @@ interface LeafletRaceMapProps {
   ) => { position: LatLng; state: string };
   weatherZones: WeatherZone[];
   demoSpeedFactor: number;
+  isPaused?: boolean;
 }
 
 /**
@@ -67,6 +68,7 @@ const LeafletRaceMap: React.FC<LeafletRaceMapProps> = ({
   raceStart,
   getPigeonFlightStateAtTime,
   weatherZones,
+  isPaused = false,
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const markerRefs = useRef<Record<string, L.CircleMarker>>({});
@@ -137,6 +139,11 @@ const LeafletRaceMap: React.FC<LeafletRaceMapProps> = ({
 
     let animationFrame: number;
     function animate() {
+      if (isPaused) {
+        animationFrame = requestAnimationFrame(animate);
+        return;
+      }
+      
       const now = Date.now();
       const t = Math.max(0, Math.min(durationMs, now - raceStartTime)) / 1000; // seconds
       raceScripts.forEach((script) => {
@@ -183,21 +190,22 @@ const LeafletRaceMap: React.FC<LeafletRaceMapProps> = ({
       cancelAnimationFrame(animationFrame);
       map.remove();
     };
-  }, [raceScripts, stats, raceConfig, raceStartTime, durationMs, homeBases, raceStart, getPigeonFlightStateAtTime, weatherZones]);
+  }, [raceScripts, stats, raceConfig, raceStartTime, durationMs, homeBases, raceStart, getPigeonFlightStateAtTime, weatherZones, isPaused]);
 
   return <div ref={mapRef} className="w-full h-full rounded-xl border border-gray-300" style={{ height: '700px' }} />;
 };
 
 export default LeafletRaceMap;
 
-function haversineDistance(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
-  const toRad = (deg: number) => (deg * Math.PI) / 180;
-  const R = 6371000; // Earth radius in meters
-  const dLat = toRad(b.lat - a.lat);
-  const dLng = toRad(b.lng - a.lng);
-  const lat1 = toRad(a.lat);
-  const lat2 = toRad(b.lat);
-  const aVal = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
-  return R * c;
-} 
+// Unused function - keeping for potential future use
+// function haversineDistance(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+//   const toRad = (deg: number) => (deg * Math.PI) / 180;
+//   const R = 6371000; // Earth radius in meters
+//   const dLat = toRad(b.lat - a.lat);
+//   const dLng = toRad(b.lng - a.lng);
+//   const lat1 = toRad(a.lat);
+//   const lat2 = toRad(b.lat);
+//   const aVal = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+//   const c = 2 * Math.atan2(Math.sqrt(aVal), Math.sqrt(1 - aVal));
+//   return R * c;
+// } 
