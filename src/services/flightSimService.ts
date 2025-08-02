@@ -145,16 +145,27 @@ export function getPigeonFlightStateAtTime(
   const focus = stats.focus || 50;
   const navigation = stats.navigation || 50;
   const skyIQ = stats.skyIQ || 50;
-  const statWobbleFactor = (focus + navigation + skyIQ) / 150; // 0.33 to 2.0 range
-  const individualWobble = Math.sin(actualFlightTime * 0.3 + individualSeed) * 0.001 * statWobbleFactor;
-  const individualOffset = (individualSeed - 50) * 0.00005; // Smaller offset
+  const statWobbleFactor = Math.max(0.1, (focus + navigation + skyIQ) / 150); // Ensure minimum factor
+  
+  // Validate inputs to prevent NaN
+  const wobbleTime = isNaN(actualFlightTime) ? 0 : actualFlightTime;
+  const wobbleSeed = isNaN(individualSeed) ? 0 : individualSeed;
+  const wobbleFactor = isNaN(statWobbleFactor) ? 0.1 : statWobbleFactor;
+  
+  const individualWobble = Math.sin(wobbleTime * 0.3 + wobbleSeed) * 0.001 * wobbleFactor;
+  const individualOffset = (wobbleSeed - 50) * 0.00005; // Smaller offset
   
   let lat = baseLat + groupOffset + groupWobble + individualWobble + individualOffset;
   let lng = baseLng + groupOffset * 0.5 + groupWobble * 0.3 + individualWobble * 0.5 + individualOffset * 0.3;
   
-  // Check for NaN in final position
+  // Check for NaN in final position and fix if needed
   if (isNaN(lat) || isNaN(lng)) {
-    console.error(`NaN in final position for pigeon ${pigeonScript.pigeonId}:`, { baseLat, baseLng, lat, lng });
+    console.error(`NaN in final position for pigeon ${pigeonScript.pigeonId}:`, { 
+      baseLat, baseLng, lat, lng, 
+      groupOffset, groupWobble, individualWobble, individualOffset,
+      statWobbleFactor, individualSeed, actualFlightTime
+    });
+    // Use safe fallback values
     lat = baseLat;
     lng = baseLng;
   }
