@@ -33,7 +33,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Get initial session
     const getInitialSession = async () => {
       try {
+        console.log('DEBUG: Starting getInitialSession');
         const currentUser = await authService.getCurrentUser();
+        console.log('DEBUG: getCurrentUser result:', currentUser);
         // Only set user if it matches the expected User type
         if (currentUser && 'email' in currentUser && 'created_at' in currentUser) {
           setUser(currentUser as User);
@@ -66,17 +68,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
+        // Set loading to false even if there's an error
+        setLoading(false);
       } finally {
         console.log('Setting loading to false in getInitialSession');
         setLoading(false);
       }
     };
 
-    getInitialSession();
+    // Add a timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.warn('Auth initialization timeout - forcing loading to false');
+      setLoading(false);
+    }, 5000); // 5 second timeout
+
+    getInitialSession().finally(() => {
+      clearTimeout(timeoutId);
+    });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event: string, session: Session | null) => {
+        console.log('DEBUG: Auth state change event:', _event, 'session:', !!session);
         // Only set user if it matches the expected User type
         if (session?.user && 'email' in session.user && 'created_at' in session.user) {
           setUser(session.user as User);
@@ -115,7 +128,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const signUp = async (email: string, password: string, username: string) => {
